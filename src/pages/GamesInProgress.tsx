@@ -1,5 +1,5 @@
 // src/components/PartidasEnCurso.js
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { database } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { useParams, Link } from 'react-router-dom';

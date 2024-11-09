@@ -104,8 +104,6 @@ const StartGame: React.FC = () => {
       .catch((error) => console.error("Error al eliminar la partida:", error));
   };
   const startNewGame = () => {
-    let partidaId = "";
-
     //Save Partida //
     let date = new Date().toLocaleDateString();
     const partidaInicial = {

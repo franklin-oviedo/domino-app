@@ -1,5 +1,5 @@
 // src/components/Jugadores.js
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { database } from '../firebase';
 import { ref, push, onValue, remove, update } from "firebase/database";
 import { useParams, Link } from 'react-router-dom';
@@ -110,6 +110,7 @@ export const Players = () =>  {
                       value={nuevoNombre} 
                       onChange={(e) => setNuevoNombre(e.target.value)} 
                       className="form-control mb-2"
+                      placeholder='text'
                     />
                     <button 
                       onClick={() => handleGuardarCambios(jugador.id)} 

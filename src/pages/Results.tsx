@@ -1,5 +1,5 @@
 // src/components/Resultados.js
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { database } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import { useParams } from "react-router-dom";
@@ -20,7 +20,7 @@ export const Results = () => {
   }, [leagueId]);
 
   const jugadoresGanadores = jugadores.filter(
-    (jugador, index) =>
+    (index) =>
       (equipoGanador === "1" && index < 2) ||
       (equipoGanador === "2" && index >= 2)
   );

@@ -1,9 +1,9 @@
 // src/components/Estadisticas.js
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { database } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import { useParams } from "react-router-dom";
-import { Container, Row, Col, Table, Nav } from "react-bootstrap";
+import { Container, Row, Col} from "react-bootstrap";
 import { StatiticsTable } from "../components/StatiticsTable";
 import { categorizePlayers } from "../helpers/statiticsHelper";
 
@@ -24,7 +24,7 @@ export const Statistics = () => {
         const sortedMes = jugadoresList.sort(
           (a, b) => (b.mensual?.average || 0) - (a.mensual?.average || 0)
         );
-        const sortedAnual = jugadoresList.sort(
+        jugadoresList.sort(
           (a, b) => (b.anual?.average || 0) - (a.anual?.average || 0)
         );
         setJugadoresMes(sortedMes);

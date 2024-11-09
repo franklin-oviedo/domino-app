@@ -33,7 +33,7 @@ export const ScorePoints = () => {
     if (!partidaId) return;
 
     const partidaRef = firebase.database().ref(`partidas/${partidaId}`);
-    const unsubscribe = partidaRef.on("value", (snapshot) => {
+    partidaRef.on("value", (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setPuntosEquipo1(data.puntosEquipo1 || {});

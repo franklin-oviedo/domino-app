@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { database } from "../firebase";
-import firebase from "firebase/compat/app"; // Ensure Firebase is imported
 import "firebase/compat/database"; // Ensure database is imported
 import { useNavigate } from "react-router-dom";
 import { ROUTE_PATHS } from "../helpers/routes";
@@ -12,7 +11,7 @@ export const Home = () => {
 
   useEffect(() => {
     const ligasRef = database.ref("ligas/");
-    const unsubscribe = ligasRef.on("value", (snapshot) => {
+    ligasRef.on("value", (snapshot) => {
       const data = snapshot.val();
       const ligasList = data
         ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
