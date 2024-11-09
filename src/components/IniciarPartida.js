@@ -25,8 +25,8 @@ function IniciarPartida() {
       const partidasList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
       
       // Filtrar partidas en curso y finalizadas
-      console.log(data)
-      console.log(partidasList)
+     // console.log(data)
+     // console.log(partidasList)
       setPartidasEnCurso(partidasList.filter(partida => !partida.finalizado));
       setPartidasFinalizadas(partidasList.filter(partida => partida.finalizado));
     });
@@ -70,6 +70,53 @@ function IniciarPartida() {
     }
   };
 
+  const savePartida = () =>{
+   
+    let partidaId = "";
+
+    //Save Partida //
+    let date = new Date().toLocaleDateString();
+    const partidaInicial = {
+      date: date,
+      idTeamWinner: "",
+      idTeamLooser: "",
+      ended: false,
+    };
+
+    const partidaRef = push(ref(database, `ligas/${ligaId}/partidas`));
+    set(partidaRef, partidaInicial)
+      .then(() => {
+        savePlayers(partidaRef.key);
+      })
+      .catch((error) => {
+        console.error("Error al iniciar la partida:", error);
+      });
+  }
+
+
+  const savePlayers = (partidaId) =>{
+    ////// Save teams //
+    var firstTeam = jugadoresSeleccionados.slice(0, 2);
+    var secondTeam = jugadoresSeleccionados.slice(2);
+
+    const ref = database.ref(`ligas/${ligaId}/partidas/${partidaId}/teams`);
+
+    ref.set({
+      FirstTeam : firstTeam.map(({id, name}) => ({id,name})),
+      SecondTeam : secondTeam.map(({id, name}) => ({id,name}))
+    });
+
+  }
+
+  const savePoints = (partidaId, teamNumberId = 1, points = 0) => {
+    let teamId = teamNumberId == 1 ? 'FirstTeam' : 'SecondTeam';
+    const ref = database.ref(`ligas/${ligaId}/partidas/${partidaId}/teams/${teamId}/points`);
+
+    ref.set({
+      Points : points
+    })
+  }
+
   const handleEntrarPartida = (partida) => {
     const jugadoresEnPartida = partida.jugadores;
     const jugadorActual = jugadoresSeleccionados.map(j => j.name);
@@ -96,6 +143,10 @@ function IniciarPartida() {
     <div>
       <h2>Iniciar Partida</h2>
       <h4>Selecciona 4 jugadores para iniciar la partida</h4>
+      <button onClick={savePartida}>Test</button>
+      <button onClick={() => savePoints('-OBHeHJP10jwMfNZtU05',1,40)}>Test2</button>
+     
+     
       <div className="row">
         {jugadores.map((jugador) => (
           <div className="col-12 col-md-6 col-lg-3" key={jugador.id}>
@@ -124,7 +175,7 @@ function IniciarPartida() {
         <ul className="list-group">
           {partidasEnCurso.map(partida => (
             <li className="list-group-item d-flex justify-content-between align-items-center" key={partida.id}>
-              {`Partida ID: ${partida.id} - Jugadores: ${partida.jugadores.join(' - ')}`}
+              {/* {`Partida ID: ${partida.id} - Jugadores: ${partida.jugadores.join(' - ')}`} */}
               <div>
                 <button className="btn btn-info btn-sm me-2" onClick={() => handleEntrarPartida(partida)}>
                   Entrar
@@ -145,7 +196,7 @@ function IniciarPartida() {
         <ul className="list-group">
           {partidasFinalizadas.map(partida => (
             <li className="list-group-item d-flex justify-content-between align-items-center" key={partida.id}>
-              {`Partida ID: ${partida.id} - Jugadores: ${partida.jugadores.join(' - ')} - Puntos: ${partida.puntosEquipo1} - ${partida.puntosEquipo2}`}
+              {/* {`Partida ID: ${partida.id} - Jugadores: ${partida.jugadores.join(' - ')} - Puntos: ${partida.puntosEquipo1} - ${partida.puntosEquipo2}`} */}
             </li>
           ))}
         </ul>
