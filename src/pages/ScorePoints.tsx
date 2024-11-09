@@ -223,10 +223,10 @@ export const ScorePoints = () => {
             <Card.Body>
               <Card.Title>
                 Equipo 1:{" "}
-                {jugadores
+                {/* {jugadores
                   .slice(0, 2)
                   .map((j: any) => j.name)
-                  .join(" - ")}
+                  .join(" - ")} */}
               </Card.Title>
               <Card.Text>Total: {calcularTotal(puntosEquipo1)}</Card.Text>
               <Button
@@ -256,10 +256,10 @@ export const ScorePoints = () => {
             <Card.Body>
               <Card.Title>
                 Equipo 2:{" "}
-                {jugadores
+                {/* {jugadores
                   .slice(2)
                   .map((j: any) => j.name)
-                  .join(" - ")}
+                  .join(" - ")} */}
               </Card.Title>
               <Card.Text>Total: {calcularTotal(puntosEquipo2)}</Card.Text>
               <Button

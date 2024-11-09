@@ -8,11 +8,11 @@ import { StatiticsTable } from "../components/StatiticsTable";
 import { categorizePlayers } from "../helpers/statiticsHelper";
 
 export const Statistics = () => {
-  const { ligaId } = useParams();
+  const { leagueId } = useParams();
   const [jugadoresMes, setJugadoresMes] = useState<any[]>([]);
 
   useEffect(() => {
-    const jugadoresRef = ref(database, `ligas/${ligaId}/jugadores`);
+    const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
     onValue(jugadoresRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -30,7 +30,7 @@ export const Statistics = () => {
         setJugadoresMes(sortedMes);
       }
     });
-  }, [ligaId]);
+  }, [leagueId]);
 
   const categorizedPlayers = categorizePlayers(jugadoresMes);
 

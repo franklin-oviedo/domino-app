@@ -3,27 +3,27 @@ import { useParams, Link } from "react-router-dom";
 import { ROUTE_PATHS } from "../helpers/routes";
 
 export const LeagueOptions = () => {
-  const { ligaId } = useParams();
+  const { leagueId } = useParams();
 
   const options = [
     {
-      path: ROUTE_PATHS.START_GAME.replace(":leagueId", ligaId!),
+      path: ROUTE_PATHS.START_GAME.replace(":leagueId", leagueId!),
       title: "Iniciar Partida",
       description: "Comienza una nueva partida en esta liga.",
     },
     {
-      path: ROUTE_PATHS.STATISTICS.replace(":leagueId", ligaId!),
+      path: ROUTE_PATHS.STATISTICS.replace(":leagueId", leagueId!),
       title: "Ver Estadísticas de Todos los Jugadores",
       description:
         "Consulta las estadísticas de rendimiento de todos los jugadores.",
     },
     {
-      path: ROUTE_PATHS.PLAYERS.replace(":leagueId", ligaId!),
+      path: ROUTE_PATHS.PLAYERS.replace(":leagueId", leagueId!),
       title: "Ver Jugadores en la Liga",
       description: "Mira la lista de jugadores que pertenecen a esta liga.",
     },
     {
-      path: ROUTE_PATHS.GAMES_IN_PROGRESS.replace(":leagueId", ligaId!),
+      path: ROUTE_PATHS.GAMES_IN_PROGRESS.replace(":leagueId", leagueId!),
       title: "Ver Todas las Partidas en Curso",
       description: "Revisa las partidas que están actualmente en curso.",
     },

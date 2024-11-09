@@ -5,17 +5,17 @@ import { ref, onValue } from 'firebase/database';
 import { useParams, Link } from 'react-router-dom';
 
 export const GamesInProgress = () => {
-  const { ligaId } = useParams();
+  const { leagueId } = useParams();
   const [partidas, setPartidas] = useState<any[]>([]);
 
   useEffect(() => {
-    const partidasRef = ref(database, `ligas/${ligaId}/partidas/`); // Ajusta la ruta según tu estructura de datos
+    const partidasRef = ref(database, `ligas/${leagueId}/partidas/`); // Ajusta la ruta según tu estructura de datos
     onValue(partidasRef, (snapshot) => {
       const data = snapshot.val();
       const partidasList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
       setPartidas(partidasList);
     });
-  }, [ligaId]);
+  }, [leagueId]);
 
   return (
     <div className="container mt-5">

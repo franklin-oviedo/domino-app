@@ -9,8 +9,8 @@ import { LeagueOptions } from './pages/LeagueOptions';
 import { Players } from './pages/Players';
 import { Results } from './pages/Results';
 import { ScorePoints } from './pages/ScorePoints';
-import { StartGame } from './pages/StartGame';
 import { Statistics } from './pages/Statitics';
+import StartGame from './pages/StartGame';
 
 const ROUTES = [
   { path: ROUTE_PATHS.HOME, element: <Home /> },

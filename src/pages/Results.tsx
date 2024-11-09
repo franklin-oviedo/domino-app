@@ -5,11 +5,11 @@ import { ref, onValue } from "firebase/database";
 import { useParams } from "react-router-dom";
 
 export const Results = () => {
-  const { ligaId, equipoGanador } = useParams();
+  const { leagueId, equipoGanador } = useParams();
   const [jugadores, setJugadores] = useState<any[]>([]);
 
   useEffect(() => {
-    const jugadoresRef = ref(database, `ligas/${ligaId}/jugadores`);
+    const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
     onValue(jugadoresRef, (snapshot) => {
       const data = snapshot.val();
       const jugadoresList = data
@@ -17,7 +17,7 @@ export const Results = () => {
         : [];
       setJugadores(jugadoresList);
     });
-  }, [ligaId]);
+  }, [leagueId]);
 
   const jugadoresGanadores = jugadores.filter(
     (jugador, index) =>
