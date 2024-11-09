@@ -4,7 +4,7 @@ import { database } from "../firebase";
 import { ref, onValue } from "firebase/database";
 import { useParams } from "react-router-dom";
 
-function Resultados() {
+export const Results = () => {
   const { ligaId, equipoGanador } = useParams();
   const [jugadores, setJugadores] = useState<any[]>([]);
 
@@ -43,4 +43,3 @@ function Resultados() {
   );
 }
 
-export default Resultados;

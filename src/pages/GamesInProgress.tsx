@@ -4,7 +4,7 @@ import { database } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { useParams, Link } from 'react-router-dom';
 
-function PartidasEnCurso() {
+export const GamesInProgress = () => {
   const { ligaId } = useParams();
   const [partidas, setPartidas] = useState<any[]>([]);
 
@@ -42,5 +42,3 @@ function PartidasEnCurso() {
     </div>
   );
 }
-
-export default PartidasEnCurso;

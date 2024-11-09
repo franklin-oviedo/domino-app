@@ -12,7 +12,7 @@ import {
 import firebase from "firebase/compat/app";
 import "firebase/compat/database";
 
-function AnotarPuntos() {
+export const ScorePoints = () => {
   const { state } = useLocation();
   const { jugadores, partidaId } = state || { jugadores: [] };
   const navigate = useNavigate();
@@ -345,6 +345,4 @@ function AnotarPuntos() {
       )}
     </div>
   );
-}
-
-export default AnotarPuntos;
+};

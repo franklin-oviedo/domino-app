@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { database } from "../firebase";
-import firebase from "firebase/compat/app"; // Asegúrate de importar Firebase
-import "firebase/compat/database"; // Asegúrate de importar la base de datos
+import firebase from "firebase/compat/app"; // Ensure Firebase is imported
+import "firebase/compat/database"; // Ensure database is imported
 import { useNavigate } from "react-router-dom";
+import { ROUTE_PATHS } from "../helpers/routes";
 
-function Liga() {
+export const Home = () => {
   const [ligaName, setLigaName] = useState("");
   const [ligas, setLigas] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const ligasRef = database.ref("ligas/"); // Usa database.ref directamente
+    const ligasRef = database.ref("ligas/");
     const unsubscribe = ligasRef.on("value", (snapshot) => {
       const data = snapshot.val();
       const ligasList = data
@@ -19,70 +20,68 @@ function Liga() {
       setLigas(ligasList);
     });
 
-    return () => ligasRef.off(); // Limpiar la suscripción
+    return () => ligasRef.off();
   }, []);
 
-  const handleCrearLiga = () => {
+  const handleCreateLeague = () => {
     if (ligaName.trim() === "") {
-      alert("El nombre de la liga no puede estar vacío.");
+      alert("League name cannot be empty.");
       return;
     }
 
     const ligasRef = database.ref("ligas/");
-    const newLigaRef = ligasRef.push(); // Crear una nueva referencia para la liga
+    const newLigaRef = ligasRef.push();
     newLigaRef
-      .set({ name: ligaName }) // Usar set para establecer los datos
+      .set({ name: ligaName })
       .then(() => {
-        setLigaName(""); // Limpiar el campo de entrada
-        navigate(`/opciones-liga/${newLigaRef.key}`); // Redirigir a las opciones de liga
+        setLigaName("");
+        navigate(ROUTE_PATHS.LEAGUE_OPTIONS.replace(":leagueId", newLigaRef.key!));
       })
       .catch((error) => {
-        console.error("Error al crear la liga:", error);
+        console.error("Error creating league:", error);
       });
   };
 
-  const handleSeleccionarLiga = (ligaId: string) => {
-    navigate(`/opciones-liga/${ligaId}`);
+  const handleSelectLeague = (leagueId: string) => {
+    navigate(ROUTE_PATHS.LEAGUE_OPTIONS.replace(":leagueId", leagueId));
   };
 
   return (
     <div>
-      <h2 className="text-center mb-4">Crear o Seleccionar Liga</h2>
+      <h2 className="text-center mb-4">Create or Select League</h2>
 
       <div className="input-group mb-3">
         <input
           type="text"
           value={ligaName}
           onChange={(e) => setLigaName(e.target.value)}
-          placeholder="Nombre de la Liga"
+          placeholder="League Name"
           className="form-control"
         />
         <button
           disabled={!ligaName}
-          onClick={handleCrearLiga}
+          onClick={handleCreateLeague}
           className="btn btn-primary"
         >
-          Crear Liga
+          Create League
         </button>
       </div>
 
-      <h4 className="text-center">Ligas Disponibles</h4>
+      <h4 className="text-center">Available Leagues</h4>
       <div className="list-group mb-4">
         {ligas.map((liga) => (
           <button
             key={liga.id}
             className="list-group-item list-group-item-action"
-            onClick={() => handleSeleccionarLiga(liga.id)}
+            onClick={() => handleSelectLeague(liga.id)}
           >
             {liga.name}
           </button>
         ))}
       </div>
       {ligas.length === 0 && (
-        <p className="text-center">No hay ligas creadas.</p>
+        <p className="text-center">No leagues created.</p>
       )}
     </div>
   );
-}
-
-export default Liga;
+};

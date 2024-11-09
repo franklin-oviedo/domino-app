@@ -5,7 +5,7 @@ import { ref, push, onValue, remove, update } from "firebase/database";
 import { useParams, Link } from 'react-router-dom';
 import { Modal } from 'react-bootstrap'; // Ensure you have react-bootstrap installed
 
-function Jugadores() {
+export const Players = () =>  {
   const { ligaId } = useParams();
   const [jugadorName, setJugadorName] = useState('');
   const [jugadores, setJugadores] = useState<any[]>([]);
@@ -188,4 +188,3 @@ function Jugadores() {
   );
 }
 
-export default Jugadores;
