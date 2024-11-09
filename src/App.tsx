@@ -1,15 +1,15 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Liga from './components/Liga';
-import Jugadores from './components/Jugadores';
-import IniciarPartida from './components/IniciarPartida';
-import AnotarPuntos from './components/AnotarPuntos';
-import Estadisticas from './components/Estadisticas';
-import Resultados from './components/Resultados';
-import OpcionesLiga from './components/OpcionesLiga'
+import Liga from './pages/Liga';
+import Jugadores from './pages/Jugadores';
+import IniciarPartida from './pages/IniciarPartida';
+import AnotarPuntos from './pages/AnotarPuntos';
+import Estadisticas from './pages/Estadisticas';
+import Resultados from './pages/Resultados';
+import OpcionesLiga from './pages/OpcionesLiga'
 import 'bootstrap/dist/css/bootstrap.min.css';
-import PartidasEnCurso from './components/PartidasEnCurso';
+import PartidasEnCurso from './pages/PartidasEnCurso';
 
 function App() {
   return (

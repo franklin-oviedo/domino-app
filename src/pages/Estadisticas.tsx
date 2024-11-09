@@ -76,18 +76,6 @@ function Estadisticas() {
   return (
     <Container className="mt-5">
       <h2 className="text-center mb-4">Estadísticas de la Liga</h2>
-      <Nav
-        variant="tabs"
-        defaultActiveKey="mes"
-        onSelect={(tab) => setActiveTab(tab ?? "mes")}
-      >
-        <Nav.Item>
-          <Nav.Link eventKey="mes">Estadísticas Mensuales</Nav.Link>
-        </Nav.Item>
-        <Nav.Item>
-          <Nav.Link eventKey="anual">Estadísticas Anuales</Nav.Link>
-        </Nav.Item>
-      </Nav>
       <Row>
         <Col>
           {activeTab === "mes" && (
@@ -108,36 +96,9 @@ function Estadisticas() {
               </tbody>
             </Table>
           )}
-          {activeTab === "anual" && (
-            <Table striped bordered hover responsive className="mt-3">
-              <thead className="bg-success text-white">
-                <tr>
-                  <th>Nombre</th>
-                  <th>Partidas Ganadas</th>
-                  <th>Partidas Perdidas</th>
-                  <th>Average</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jugadoresAnual.map((jugador) => (
-                  <tr key={jugador.id}>
-                    <td>{jugador.name}</td>
-                    <td>{jugador.anual?.partidasGanadas || 0}</td>
-                    <td>{jugador.anual?.partidasPerdidas || 0}</td>
-                    <td>{calculateAverage(jugador.anual)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
           {jugadoresMes.length === 0 && activeTab === "mes" && (
             <p className="text-center mt-3">
               No hay estadísticas mensuales disponibles.
-            </p>
-          )}
-          {jugadoresAnual.length === 0 && activeTab === "anual" && (
-            <p className="text-center mt-3">
-              No hay estadísticas anuales disponibles.
             </p>
           )}
         </Col>
