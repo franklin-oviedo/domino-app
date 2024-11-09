@@ -6,7 +6,7 @@ import { useParams, Link } from 'react-router-dom';
 
 function PartidasEnCurso() {
   const { ligaId } = useParams();
-  const [partidas, setPartidas] = useState([]);
+  const [partidas, setPartidas] = useState<any[]>([]);
 
   useEffect(() => {
     const partidasRef = ref(database, `ligas/${ligaId}/partidas/`); // Ajusta la ruta según tu estructura de datos

@@ -8,11 +8,11 @@ import { Modal } from 'react-bootstrap'; // Ensure you have react-bootstrap inst
 function Jugadores() {
   const { ligaId } = useParams();
   const [jugadorName, setJugadorName] = useState('');
-  const [jugadores, setJugadores] = useState([]);
+  const [jugadores, setJugadores] = useState<any[]>([]);
   const [jugadorEditado, setJugadorEditado] = useState(null);
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [showStatsModal, setShowStatsModal] = useState(false);
-  const [selectedJugador, setSelectedJugador] = useState(null);
+  const [selectedJugador, setSelectedJugador] = useState<any>(null);
 
   useEffect(() => {
     const jugadoresRef = ref(database, `ligas/${ligaId}/jugadores`);
@@ -40,7 +40,7 @@ function Jugadores() {
     setJugadorName('');
   };
 
-  const handleEliminarJugador = (jugadorId) => {
+  const handleEliminarJugador = (jugadorId:string) => {
     const jugadorRef = ref(database, `ligas/${ligaId}/jugadores/${jugadorId}`);
     remove(jugadorRef)
       .then(() => {
@@ -51,12 +51,12 @@ function Jugadores() {
       });
   };
 
-  const handleEditarJugador = (jugador) => {
+  const handleEditarJugador = (jugador:any) => {
     setJugadorEditado(jugador.id);
     setNuevoNombre(jugador.name);
   };
 
-  const handleGuardarCambios = (jugadorId) => {
+  const handleGuardarCambios = (jugadorId:string) => {
     if (nuevoNombre.trim() === '') {
       alert("El nuevo nombre no puede estar vacío.");
       return;
@@ -74,7 +74,7 @@ function Jugadores() {
       });
   };
 
-  const handleVerEstadisticas = (jugador) => {
+  const handleVerEstadisticas = (jugador:any) => {
     setSelectedJugador(jugador);
     setShowStatsModal(true);
   };

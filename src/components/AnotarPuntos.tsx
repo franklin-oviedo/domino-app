@@ -1,31 +1,39 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Modal, Button, Card, Row, Col, ListGroup, Alert } from 'react-bootstrap';
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/database';
+import React, { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Modal,
+  Button,
+  Card,
+  Row,
+  Col,
+  ListGroup,
+  Alert,
+} from "react-bootstrap";
+import firebase from "firebase/compat/app";
+import "firebase/compat/database";
 
 function AnotarPuntos() {
   const { state } = useLocation();
   const { jugadores, partidaId } = state || { jugadores: [] };
   const navigate = useNavigate();
-  
-  const [puntosEquipo1, setPuntosEquipo1] = useState({});
-  const [puntosEquipo2, setPuntosEquipo2] = useState({});
-  const [historialEquipo1, setHistorialEquipo1] = useState([]);
-  const [historialEquipo2, setHistorialEquipo2] = useState([]);
+
+  const [puntosEquipo1, setPuntosEquipo1] = useState<any>({});
+  const [puntosEquipo2, setPuntosEquipo2] = useState<any>({});
+  const [historialEquipo1, setHistorialEquipo1] = useState<any[]>([]);
+  const [historialEquipo2, setHistorialEquipo2] = useState<any[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [puntosInput, setPuntosInput] = useState(0);
   const [equipo, setEquipo] = useState(1);
   const [isFinalized, setIsFinalized] = useState(false);
   const [winner, setWinner] = useState(null);
-  const [winnerPlayers, setWinnerPlayers] = useState([]);
-  const [error, setError] = useState('');
+  const [winnerPlayers, setWinnerPlayers] = useState<any[]>([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!partidaId) return;
 
     const partidaRef = firebase.database().ref(`partidas/${partidaId}`);
-    const unsubscribe = partidaRef.on('value', (snapshot) => {
+    const unsubscribe = partidaRef.on("value", (snapshot) => {
       const data = snapshot.val();
       if (data) {
         setPuntosEquipo1(data.puntosEquipo1 || {});
@@ -39,7 +47,7 @@ function AnotarPuntos() {
     return () => partidaRef.off();
   }, [partidaId]);
 
-  const handleShowModal = (equipoSeleccionado) => {
+  const handleShowModal = (equipoSeleccionado: any) => {
     setEquipo(equipoSeleccionado);
     setShowModal(true);
   };
@@ -48,37 +56,49 @@ function AnotarPuntos() {
 
   const handleAgregarPuntos = useCallback(() => {
     if (puntosInput <= 0 || puntosInput > 200) {
-      setError('Los puntos deben estar entre 1 y 200');
+      setError("Los puntos deben estar entre 1 y 200");
       return;
     }
 
     const newPuntos = { [new Date().getTime()]: puntosInput };
-    
-    const actualizarEquipo = (equipo) => {
+
+    const actualizarEquipo = (equipo: any) => {
       const puntos = equipo === 1 ? puntosEquipo1 : puntosEquipo2;
       const historial = equipo === 1 ? historialEquipo1 : historialEquipo2;
 
       const updatedPuntos = { ...puntos, ...newPuntos };
-      const nuevoRegistro = { puntos: puntosInput, timestamp: new Date().toLocaleString() };
-      const isDuplicate = historial.some(registro => 
-        registro.puntos === nuevoRegistro.puntos && 
-        registro.timestamp === nuevoRegistro.timestamp
+      const nuevoRegistro = {
+        puntos: puntosInput,
+        timestamp: new Date().toLocaleString(),
+      };
+      const isDuplicate = historial.some(
+        (registro: any) =>
+          registro.puntos === nuevoRegistro.puntos &&
+          registro.timestamp === nuevoRegistro.timestamp
       );
 
-      const updatedHistorial = isDuplicate ? historial : [...historial, nuevoRegistro];
+      const updatedHistorial = isDuplicate
+        ? historial
+        : [...historial, nuevoRegistro];
 
       const equipoRef = firebase.database().ref(`partidas/${partidaId}`);
-      equipoRef.update({
-        [`puntosEquipo${equipo}`]: updatedPuntos,
-        [`historialEquipo${equipo}`]: updatedHistorial,
-      }).catch((error) => {
-        console.error("Error al actualizar puntos:", error);
-        setError('Error al actualizar los puntos');
-      });
+      equipoRef
+        .update({
+          [`puntosEquipo${equipo}`]: updatedPuntos,
+          [`historialEquipo${equipo}`]: updatedHistorial,
+        })
+        .catch((error) => {
+          console.error("Error al actualizar puntos:", error);
+          setError("Error al actualizar los puntos");
+        });
 
-      const total = calcularTotal(updatedPuntos);
+      const total: any = calcularTotal(updatedPuntos);
       if (total >= 200) {
-        finalizarPartida(`Equipo ${equipo}`, jugadores.slice((equipo - 1) * 2, equipo * 2), jugadores.slice(equipo * 2));
+        finalizarPartida(
+          `Equipo ${equipo}`,
+          jugadores.slice((equipo - 1) * 2, equipo * 2),
+          jugadores.slice(equipo * 2)
+        );
       }
 
       return updatedPuntos;
@@ -86,77 +106,110 @@ function AnotarPuntos() {
 
     if (equipo === 1) {
       setPuntosEquipo1(actualizarEquipo(1));
-      setHistorialEquipo1(prev => {
-        const nuevoRegistro = { puntos: puntosInput, timestamp: new Date().toLocaleString() };
-        return prev.some(registro => 
-          registro.puntos === nuevoRegistro.puntos && 
-          registro.timestamp === nuevoRegistro.timestamp
-        ) ? prev : [...prev, nuevoRegistro];
+      setHistorialEquipo1((prev) => {
+        const nuevoRegistro = {
+          puntos: puntosInput,
+          timestamp: new Date().toLocaleString(),
+        };
+        return prev.some(
+          (registro) =>
+            registro.puntos === nuevoRegistro.puntos &&
+            registro.timestamp === nuevoRegistro.timestamp
+        )
+          ? prev
+          : [...prev, nuevoRegistro];
       });
     } else {
       setPuntosEquipo2(actualizarEquipo(2));
-      setHistorialEquipo2(prev => {
-        const nuevoRegistro = { puntos: puntosInput, timestamp: new Date().toLocaleString() };
-        return prev.some(registro => 
-          registro.puntos === nuevoRegistro.puntos && 
-          registro.timestamp === nuevoRegistro.timestamp
-        ) ? prev : [...prev, nuevoRegistro];
+      setHistorialEquipo2((prev) => {
+        const nuevoRegistro = {
+          puntos: puntosInput,
+          timestamp: new Date().toLocaleString(),
+        };
+        return prev.some(
+          (registro) =>
+            registro.puntos === nuevoRegistro.puntos &&
+            registro.timestamp === nuevoRegistro.timestamp
+        )
+          ? prev
+          : [...prev, nuevoRegistro];
       });
     }
 
     setPuntosInput(0);
     handleCloseModal();
-    setError(''); // Limpiar el mensaje de error
+    setError(""); // Limpiar el mensaje de error
   }, [puntosInput, equipo, jugadores, partidaId]);
 
-  const finalizarPartida = (winningTeam, winningPlayers, losingPlayers) => {
+  const finalizarPartida = (
+    winningTeam: any,
+    winningPlayers: any,
+    losingPlayers: any
+  ) => {
     setIsFinalized(true);
     setWinner(winningTeam);
     setWinnerPlayers(winningPlayers);
-  
+
     const partidaRef = firebase.database().ref(`partidas/${partidaId}`);
-    partidaRef.once('value').then((snapshot) => {
+    partidaRef.once("value").then((snapshot) => {
       const partidaData = snapshot.val();
       const datosFinales = {
         ...partidaData,
         finalizado: true,
         ganador: winningTeam,
         fecha: new Date().toISOString(),
-        jugadoresGanadores: winningPlayers.map(jugador => ({ id: jugador.id, name: jugador.name })),
-        jugadoresPerdedores: losingPlayers.map(jugador => ({ id: jugador.id, name: jugador.name })),
+        jugadoresGanadores: winningPlayers.map((jugador: any) => ({
+          id: jugador.id,
+          name: jugador.name,
+        })),
+        jugadoresPerdedores: losingPlayers.map((jugador: any) => ({
+          id: jugador.id,
+          name: jugador.name,
+        })),
       };
-  
+
       // Actualiza el campo 'finalizado' y 'ganador' en la partida
-      partidaRef.update({ finalizado: true, ganador: winningTeam })
+      partidaRef
+        .update({ finalizado: true, ganador: winningTeam })
         .then(() => {
           // Luego, guarda la partida finalizada en "partidasJugadas"
-          const partidasJugadasRef = firebase.database().ref('partidasJugadas/');
+          const partidasJugadasRef = firebase
+            .database()
+            .ref("partidasJugadas/");
           return partidasJugadasRef.push(datosFinales);
         })
         .then(() => {
           // Finalmente, elimina la partida de "partidas"
           return partidaRef.remove();
         })
-        .catch((error) => console.error("Error al finalizar la partida:", error));
+        .catch((error) =>
+          console.error("Error al finalizar la partida:", error)
+        );
     });
-  
-  };
-  
-  const iniciarNuevaPartida = () => {
-    const nuevaPartidaRef = firebase.database().ref('partidas/').push();
-    nuevaPartidaRef.set({
-      puntosEquipo1: {},
-      puntosEquipo2: {},
-      historialEquipo1: [],
-      historialEquipo2: [],
-      finalizado: false,
-      jugadores,
-    }).then(() => {
-      navigate(`/anotar-puntos/${nuevaPartidaRef.key}`, { state: { jugadores } });
-    }).catch((error) => console.error("Error al iniciar nueva partida:", error));
   };
 
-  const calcularTotal = (puntos) => {
+  const iniciarNuevaPartida = () => {
+    const nuevaPartidaRef = firebase.database().ref("partidas/").push();
+    nuevaPartidaRef
+      .set({
+        puntosEquipo1: {},
+        puntosEquipo2: {},
+        historialEquipo1: [],
+        historialEquipo2: [],
+        finalizado: false,
+        jugadores,
+      })
+      .then(() => {
+        navigate(`/anotar-puntos/${nuevaPartidaRef.key}`, {
+          state: { jugadores },
+        });
+      })
+      .catch((error) =>
+        console.error("Error al iniciar nueva partida:", error)
+      );
+  };
+
+  const calcularTotal = (puntos: number[]) => {
     return Object.values(puntos).reduce((total, pts) => total + pts, 0);
   };
 
@@ -166,13 +219,21 @@ function AnotarPuntos() {
       {error && <Alert variant="danger">{error}</Alert>}
       <Row className="align-items-center">
         <Col>
-          <Card className={`mb-3 ${isFinalized ? 'bg-danger text-white' : ''}`}>
+          <Card className={`mb-3 ${isFinalized ? "bg-danger text-white" : ""}`}>
             <Card.Body>
               <Card.Title>
-                Equipo 1: {jugadores.slice(0, 2).map(j => j.name).join(' - ')}
+                Equipo 1:{" "}
+                {jugadores
+                  .slice(0, 2)
+                  .map((j: any) => j.name)
+                  .join(" - ")}
               </Card.Title>
               <Card.Text>Total: {calcularTotal(puntosEquipo1)}</Card.Text>
-              <Button variant="primary" onClick={() => handleShowModal(1)} disabled={isFinalized}>
+              <Button
+                variant="primary"
+                onClick={() => handleShowModal(1)}
+                disabled={isFinalized}
+              >
                 Agregar Puntos
               </Button>
               <ListGroup className="mt-3">
@@ -191,13 +252,21 @@ function AnotarPuntos() {
         </Col>
 
         <Col>
-          <Card className={`mb-3 ${isFinalized ? 'bg-danger text-white' : ''}`}>
+          <Card className={`mb-3 ${isFinalized ? "bg-danger text-white" : ""}`}>
             <Card.Body>
               <Card.Title>
-                Equipo 2: {jugadores.slice(2).map(j => j.name).join(' - ')}
+                Equipo 2:{" "}
+                {jugadores
+                  .slice(2)
+                  .map((j: any) => j.name)
+                  .join(" - ")}
               </Card.Title>
               <Card.Text>Total: {calcularTotal(puntosEquipo2)}</Card.Text>
-              <Button variant="primary" onClick={() => handleShowModal(2)} disabled={isFinalized}>
+              <Button
+                variant="primary"
+                onClick={() => handleShowModal(2)}
+                disabled={isFinalized}
+              >
                 Agregar Puntos
               </Button>
               <ListGroup className="mt-3">
@@ -226,7 +295,11 @@ function AnotarPuntos() {
               id="puntosInput"
               className="form-control"
               value={puntosInput}
-              onChange={(e) => setPuntosInput(Math.max(0, Math.min(parseInt(e.target.value, 10) || 0, 200)))}
+              onChange={(e) =>
+                setPuntosInput(
+                  Math.max(0, Math.min(parseInt(e.target.value, 10) || 0, 200))
+                )
+              }
               min="0"
               max="200"
             />
@@ -266,7 +339,9 @@ function AnotarPuntos() {
       </Modal>
 
       {isFinalized && (
-        <h3 className="text-danger text-center mt-4">¡La partida ha finalizado!</h3>
+        <h3 className="text-danger text-center mt-4">
+          ¡La partida ha finalizado!
+        </h3>
       )}
     </div>
   );

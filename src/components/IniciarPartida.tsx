@@ -6,16 +6,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 function IniciarPartida() {
   const { ligaId } = useParams();
   const navigate = useNavigate();
-  const [jugadores, setJugadores] = useState([]);
-  const [jugadoresSeleccionados, setJugadoresSeleccionados] = useState([]);
-  const [partidasEnCurso, setPartidasEnCurso] = useState([]);
-  const [partidasFinalizadas, setPartidasFinalizadas] = useState([]);
+  const [jugadores, setJugadores] = useState<any[]>([]);
+  const [jugadoresSeleccionados, setJugadoresSeleccionados] = useState<any[]>([]);
+  const [partidasEnCurso, setPartidasEnCurso] = useState<any[]>([]);
+  const [partidasFinalizadas, setPartidasFinalizadas] = useState<any[]>([]);
 
   useEffect(() => {
     const jugadoresRef = ref(database, `ligas/${ligaId}/jugadores`);
     onValue(jugadoresRef, (snapshot) => {
       const data = snapshot.val();
       const jugadoresList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+      console.log(jugadoresList);
       setJugadores(jugadoresList);
     });
 
@@ -32,8 +33,8 @@ function IniciarPartida() {
     });
   }, [ligaId]);
 
-  const handleSeleccionarJugador = (jugador) => {
-    if (jugadoresSeleccionados.length < 4 && !jugadoresSeleccionados.some(j => j.id === jugador.id)) {
+  const handleSeleccionarJugador = (jugador:any) => {
+    if (jugadoresSeleccionados.length < 4 && !jugadoresSeleccionados.some((j:any) => j.id === jugador.id)) {
       setJugadoresSeleccionados([...jugadoresSeleccionados, jugador]);
     } else if (jugadoresSeleccionados.some(j => j.id === jugador.id)) {
       setJugadoresSeleccionados(jugadoresSeleccionados.filter(j => j.id !== jugador.id));
@@ -70,7 +71,7 @@ function IniciarPartida() {
     }
   };
 
-  const handleEntrarPartida = (partida) => {
+  const handleEntrarPartida = (partida:any) => {
     const jugadoresEnPartida = partida.jugadores;
     const jugadorActual = jugadoresSeleccionados.map(j => j.name);
 
@@ -81,7 +82,7 @@ function IniciarPartida() {
     }
   };
 
-  const handleBorrarPartida = (partidaId) => {
+  const handleBorrarPartida = (partidaId:string) => {
     const partidaRef = ref(database, `ligas/${ligaId}/partidas/${partidaId}`);
     remove(partidaRef)
       .then(() => {
