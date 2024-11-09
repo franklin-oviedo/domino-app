@@ -1,21 +1,21 @@
 // src/components/PartidasEnCurso.js
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { database } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { useParams, Link } from 'react-router-dom';
 
-function PartidasEnCurso() {
-  const { ligaId } = useParams();
-  const [partidas, setPartidas] = useState([]);
+export const GamesInProgress = () => {
+  const { leagueId } = useParams();
+  const [partidas, setPartidas] = useState<any[]>([]);
 
   useEffect(() => {
-    const partidasRef = ref(database, `ligas/${ligaId}/partidas/`); // Ajusta la ruta según tu estructura de datos
+    const partidasRef = ref(database, `ligas/${leagueId}/partidas/`); // Ajusta la ruta según tu estructura de datos
     onValue(partidasRef, (snapshot) => {
       const data = snapshot.val();
       const partidasList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
       setPartidas(partidasList);
     });
-  }, [ligaId]);
+  }, [leagueId]);
 
   return (
     <div className="container mt-5">
@@ -42,5 +42,3 @@ function PartidasEnCurso() {
     </div>
   );
 }
-
-export default PartidasEnCurso;
