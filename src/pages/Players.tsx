@@ -5,23 +5,23 @@ import { ref, push, onValue, remove, update } from "firebase/database";
 import { useParams, Link } from 'react-router-dom';
 import { Modal } from 'react-bootstrap'; // Ensure you have react-bootstrap installed
 
-function Jugadores() {
-  const { ligaId } = useParams();
+export const Players = () =>  {
+  const { leagueId } = useParams();
   const [jugadorName, setJugadorName] = useState('');
-  const [jugadores, setJugadores] = useState([]);
+  const [jugadores, setJugadores] = useState<any[]>([]);
   const [jugadorEditado, setJugadorEditado] = useState(null);
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [showStatsModal, setShowStatsModal] = useState(false);
-  const [selectedJugador, setSelectedJugador] = useState(null);
+  const [selectedJugador, setSelectedJugador] = useState<any>(null);
 
   useEffect(() => {
-    const jugadoresRef = ref(database, `ligas/${ligaId}/jugadores`);
+    const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
     onValue(jugadoresRef, (snapshot) => {
       const data = snapshot.val();
       const jugadoresList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
       setJugadores(jugadoresList);
     });
-  }, [ligaId]);
+  }, [leagueId]);
 
   const handleAgregarJugador = () => {
     if (jugadorName.trim() === '') {
@@ -29,7 +29,7 @@ function Jugadores() {
       return;
     }
 
-    const jugadoresRef = ref(database, `ligas/${ligaId}/jugadores`);
+    const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
     push(jugadoresRef, {
       name: jugadorName,
       partidasGanadas: 0,
@@ -40,8 +40,8 @@ function Jugadores() {
     setJugadorName('');
   };
 
-  const handleEliminarJugador = (jugadorId) => {
-    const jugadorRef = ref(database, `ligas/${ligaId}/jugadores/${jugadorId}`);
+  const handleEliminarJugador = (jugadorId:string) => {
+    const jugadorRef = ref(database, `ligas/${leagueId}/jugadores/${jugadorId}`);
     remove(jugadorRef)
       .then(() => {
         console.log("Jugador eliminado con éxito");
@@ -51,18 +51,18 @@ function Jugadores() {
       });
   };
 
-  const handleEditarJugador = (jugador) => {
+  const handleEditarJugador = (jugador:any) => {
     setJugadorEditado(jugador.id);
     setNuevoNombre(jugador.name);
   };
 
-  const handleGuardarCambios = (jugadorId) => {
+  const handleGuardarCambios = (jugadorId:string) => {
     if (nuevoNombre.trim() === '') {
       alert("El nuevo nombre no puede estar vacío.");
       return;
     }
 
-    const jugadorRef = ref(database, `ligas/${ligaId}/jugadores/${jugadorId}`);
+    const jugadorRef = ref(database, `ligas/${leagueId}/jugadores/${jugadorId}`);
     update(jugadorRef, { name: nuevoNombre })
       .then(() => {
         console.log("Nombre del jugador actualizado con éxito");
@@ -74,7 +74,7 @@ function Jugadores() {
       });
   };
 
-  const handleVerEstadisticas = (jugador) => {
+  const handleVerEstadisticas = (jugador:any) => {
     setSelectedJugador(jugador);
     setShowStatsModal(true);
   };
@@ -134,7 +134,7 @@ function Jugadores() {
         ))}
       </div>
 
-      <Link to={`/iniciar-partida/${ligaId}`} className="btn btn-success mt-4">Iniciar Partida</Link>
+      <Link to={`/iniciar-partida/${leagueId}`} className="btn btn-success mt-4">Iniciar Partida</Link>
       <Link to="/" className="btn btn-secondary mt-4">Volver al Home</Link>
 
       {/* Modal for player statistics */}
@@ -188,4 +188,3 @@ function Jugadores() {
   );
 }
 
-export default Jugadores;
