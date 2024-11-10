@@ -85,7 +85,7 @@ const StartGame: React.FC = () => {
 
   const enterGame = (game: Game) => {
     console.log(game);
-    
+
     navigate(ROUTE_PATHS.SCORE_POINTS.replace(":leagueId", leagueId!), {
       state: {
         jugadores: game.teams?.FirstTeam.concat(game.teams?.SecondTeam),
@@ -110,10 +110,11 @@ const StartGame: React.FC = () => {
       idTeamWinner: "",
       idTeamLooser: "",
       ended: false,
-      id: "",
-    };
+      id:""
+    } as Game;
 
     const partidaRef = push(ref(database, `ligas/${leagueId}/partidas`));
+    partidaInicial.id = partidaRef.key!;
     set(partidaRef, partidaInicial)
       .then(() => {
         savePlayers(partidaRef.key!);
@@ -124,12 +125,8 @@ const StartGame: React.FC = () => {
   };
 
   const savePlayers = async (partidaId: string) => {
-    ////// Save teams //
     var firstTeam = selectedPlayers.slice(0, 2);
     var secondTeam = selectedPlayers.slice(2);
-    console.log(partidaId);
-    
-
     const ref = database.ref(`ligas/${leagueId}/partidas/${partidaId}/teams`);
 
     await ref.set({
@@ -137,11 +134,29 @@ const StartGame: React.FC = () => {
       SecondTeam: secondTeam.map(({ id, name }) => ({ id, name })),
     });
     enterGame({
-      ...ongoingGames[ongoingGames.length - 1],
-      id:partidaId,
+      id: partidaId,
       teams: { FirstTeam: firstTeam, SecondTeam: secondTeam },
-    });
+    } as Game);
+
+    updatePlayersPlaying();
   };
+   
+  const updatePlayersPlaying = () => {
+    selectedPlayers.forEach(player => {
+      const ref = database.ref(`ligas/${leagueId}/jugadores/${player.id}`);
+      ref.update({
+        isPlaying: true 
+      })
+      .then(() => {
+        console.log('User data updated successfully!');
+      })
+      .catch((error) => {
+        console.error('Error updating user data: ', error);
+      });
+    });
+    
+  }
+
 
   return (
     <div>

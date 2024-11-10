@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Game } from "../../../pages/StartGame";
 
 interface GameItemProps {
@@ -12,8 +12,13 @@ export const GameItem: React.FC<GameItemProps> = ({
   onJoin,
   onDelete,
 }) => {
-  const team1 = game.teams?.FirstTeam.map((x) => x.name).join(" & ");
-  const team2 = game.teams?.SecondTeam.map((x) => x.name).join(" & ");
+  useEffect(()=>{
+    console.log(game);
+    
+  },[])
+  const team1 = game.teams?.FirstTeam?.map((x) => x.name).filter(Boolean).join(" & ");
+  const team2 = game.teams?.SecondTeam?.map((x) => x.name).filter(Boolean).join(" & ");
+  
   return (
     <li className="list-group-item d-flex justify-content-between align-items-center">
       <span>
