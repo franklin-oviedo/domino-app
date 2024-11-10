@@ -1,16 +1,17 @@
 // src/components/Jugadores.js
-import { useState, useEffect } from 'react';
-import { database } from '../firebase';
+import React, { useState, useEffect } from "react";
+import { database } from "../firebase";
 import { ref, push, onValue, remove, update } from "firebase/database";
-import { useParams, Link } from 'react-router-dom';
-import { Modal } from 'react-bootstrap'; // Ensure you have react-bootstrap installed
+import { useParams, Link } from "react-router-dom";
+import { Modal } from "react-bootstrap"; // Ensure you have react-bootstrap installed
+import { ROUTE_PATHS } from "../helpers/routes";
 
-export const Players = () =>  {
+export const Players = () => {
   const { leagueId } = useParams();
-  const [jugadorName, setJugadorName] = useState('');
+  const [jugadorName, setJugadorName] = useState("");
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [jugadorEditado, setJugadorEditado] = useState(null);
-  const [nuevoNombre, setNuevoNombre] = useState('');
+  const [nuevoNombre, setNuevoNombre] = useState("");
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [selectedJugador, setSelectedJugador] = useState<any>(null);
 
@@ -18,13 +19,15 @@ export const Players = () =>  {
     const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
     onValue(jugadoresRef, (snapshot) => {
       const data = snapshot.val();
-      const jugadoresList = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+      const jugadoresList = data
+        ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
+        : [];
       setJugadores(jugadoresList);
     });
   }, [leagueId]);
 
   const handleAgregarJugador = () => {
-    if (jugadorName.trim() === '') {
+    if (jugadorName.trim() === "") {
       alert("El nombre del jugador no puede estar vacío.");
       return;
     }
@@ -37,11 +40,14 @@ export const Players = () =>  {
       average: 0,
       totalPartidas: 0, // Add total partidas field
     });
-    setJugadorName('');
+    setJugadorName("");
   };
 
-  const handleEliminarJugador = (jugadorId:string) => {
-    const jugadorRef = ref(database, `ligas/${leagueId}/jugadores/${jugadorId}`);
+  const handleEliminarJugador = (jugadorId: string) => {
+    const jugadorRef = ref(
+      database,
+      `ligas/${leagueId}/jugadores/${jugadorId}`
+    );
     remove(jugadorRef)
       .then(() => {
         console.log("Jugador eliminado con éxito");
@@ -51,30 +57,33 @@ export const Players = () =>  {
       });
   };
 
-  const handleEditarJugador = (jugador:any) => {
+  const handleEditarJugador = (jugador: any) => {
     setJugadorEditado(jugador.id);
     setNuevoNombre(jugador.name);
   };
 
-  const handleGuardarCambios = (jugadorId:string) => {
-    if (nuevoNombre.trim() === '') {
+  const handleGuardarCambios = (jugadorId: string) => {
+    if (nuevoNombre.trim() === "") {
       alert("El nuevo nombre no puede estar vacío.");
       return;
     }
 
-    const jugadorRef = ref(database, `ligas/${leagueId}/jugadores/${jugadorId}`);
+    const jugadorRef = ref(
+      database,
+      `ligas/${leagueId}/jugadores/${jugadorId}`
+    );
     update(jugadorRef, { name: nuevoNombre })
       .then(() => {
         console.log("Nombre del jugador actualizado con éxito");
         setJugadorEditado(null);
-        setNuevoNombre('');
+        setNuevoNombre("");
       })
       .catch((error) => {
         console.error("Error al actualizar el nombre del jugador:", error);
       });
   };
 
-  const handleVerEstadisticas = (jugador:any) => {
+  const handleVerEstadisticas = (jugador: any) => {
     setSelectedJugador(jugador);
     setShowStatsModal(true);
   };
@@ -105,10 +114,10 @@ export const Players = () =>  {
               <div className="card-body">
                 {jugadorEditado === jugador.id ? (
                   <>
-                    <input 
-                      type="text" 
-                      value={nuevoNombre} 
-                      onChange={(e) => setNuevoNombre(e.target.value)} 
+                    <input
+                      type="text"
+                      value={nuevoNombre}
+                      onChange={(e) => setNuevoNombre(e.target.value)}
                       className="form-control mb-2"
                       placeholder='text'
                     />
@@ -157,7 +166,8 @@ export const Players = () =>  {
             </thead>
             <tbody>
               <tr>
-                <td>{selectedJugador?.totalPartidas}</td> {/* Display Total Games */}
+                <td>{selectedJugador?.totalPartidas}</td>{" "}
+                {/* Display Total Games */}
                 <td>{selectedJugador?.partidasGanadas}</td>
                 <td>{selectedJugador?.partidasPerdidas}</td>
                 <td>{selectedJugador?.average}</td>
@@ -177,7 +187,8 @@ export const Players = () =>  {
             </thead>
             <tbody>
               <tr>
-                <td>{selectedJugador?.totalPartidas}</td> {/* Display Total Games */}
+                <td>{selectedJugador?.totalPartidas}</td>{" "}
+                {/* Display Total Games */}
                 <td>{selectedJugador?.partidasGanadas}</td>
                 <td>{selectedJugador?.partidasPerdidas}</td>
                 <td>{selectedJugador?.average}</td>
@@ -188,5 +199,4 @@ export const Players = () =>  {
       </Modal>
     </div>
   );
-}
-
+};

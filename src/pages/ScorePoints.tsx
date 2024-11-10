@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   Modal,
   Button,
@@ -11,11 +11,13 @@ import {
 } from "react-bootstrap";
 import firebase from "firebase/compat/app";
 import "firebase/compat/database";
+import { database } from "../firebase";
 
 export const ScorePoints = () => {
   const { state } = useLocation();
   const { jugadores, partidaId } = state || { jugadores: [] };
   const navigate = useNavigate();
+  const { leagueId } = useParams();
 
   const [puntosEquipo1, setPuntosEquipo1] = useState<any>({});
   const [puntosEquipo2, setPuntosEquipo2] = useState<any>({});
@@ -64,33 +66,12 @@ export const ScorePoints = () => {
 
     const actualizarEquipo = (equipo: any) => {
       const puntos = equipo === 1 ? puntosEquipo1 : puntosEquipo2;
-      const historial = equipo === 1 ? historialEquipo1 : historialEquipo2;
 
       const updatedPuntos = { ...puntos, ...newPuntos };
       const nuevoRegistro = {
         puntos: puntosInput,
         timestamp: new Date().toLocaleString(),
       };
-      const isDuplicate = historial.some(
-        (registro: any) =>
-          registro.puntos === nuevoRegistro.puntos &&
-          registro.timestamp === nuevoRegistro.timestamp
-      );
-
-      const updatedHistorial = isDuplicate
-        ? historial
-        : [...historial, nuevoRegistro];
-
-      const equipoRef = firebase.database().ref(`partidas/${partidaId}`);
-      equipoRef
-        .update({
-          [`puntosEquipo${equipo}`]: updatedPuntos,
-          [`historialEquipo${equipo}`]: updatedHistorial,
-        })
-        .catch((error) => {
-          console.error("Error al actualizar puntos:", error);
-          setError("Error al actualizar los puntos");
-        });
 
       const total: any = calcularTotal(updatedPuntos);
       if (total >= 200) {
@@ -106,6 +87,7 @@ export const ScorePoints = () => {
 
     if (equipo === 1) {
       setPuntosEquipo1(actualizarEquipo(1));
+      savePoints(partidaId!, 1, actualizarEquipo(1));
       setHistorialEquipo1((prev) => {
         const nuevoRegistro = {
           puntos: puntosInput,
@@ -120,6 +102,8 @@ export const ScorePoints = () => {
           : [...prev, nuevoRegistro];
       });
     } else {
+      // savePoints(partidaId!, 2, actualizarEquipo(2));
+
       setPuntosEquipo2(actualizarEquipo(2));
       setHistorialEquipo2((prev) => {
         const nuevoRegistro = {
@@ -136,7 +120,7 @@ export const ScorePoints = () => {
       });
     }
 
-    setPuntosInput(0);
+    // setPuntosInput(0);
     handleCloseModal();
     setError(""); // Limpiar el mensaje de error
   }, [puntosInput, equipo, jugadores, partidaId]);
@@ -211,6 +195,31 @@ export const ScorePoints = () => {
 
   const calcularTotal = (puntos: number[]) => {
     return Object.values(puntos).reduce((total, pts) => total + pts, 0);
+  };
+
+  const savePoints = async (
+    partidaId: string,
+    teamNumberId = 1,
+    points = 0
+  ) => {
+    let teamId = teamNumberId == 1 ? "FirstTeam" : "SecondTeam";
+    var firstTeam = jugadores.slice(0, 2);
+    var secondTeam = jugadores.slice(2);
+
+    const ref = database.ref(`ligas/${leagueId}/partidas/${partidaId}/teams`);
+
+    const team1 = firstTeam.map(({ id, name }: any) => ({ id, name }));
+    const team2 = secondTeam.map(({ id, name }: any) => ({ id, name }));
+    if (teamNumberId == 1) {
+      team1.push(points);
+    } else {
+      team2.push(points);
+    }
+
+    await ref.set({
+      FirstTeam: team1,
+      SecondTeam: team2,
+    });
   };
 
   return (
