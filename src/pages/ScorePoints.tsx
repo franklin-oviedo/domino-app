@@ -197,13 +197,29 @@ export const ScorePoints = () => {
     return Object.values(puntos).reduce((total, pts) => total + pts, 0);
   };
 
-  const savePoints = (partidaId: string, teamNumberId = 1, points = 0) => {
+  const savePoints = async (
+    partidaId: string,
+    teamNumberId = 1,
+    points = 0
+  ) => {
     let teamId = teamNumberId == 1 ? "FirstTeam" : "SecondTeam";
-    const ref = database.ref(
-      `ligas/${leagueId}/partidas/${partidaId}/teams/${teamId}`
-    );
+    var firstTeam = jugadores.slice(0, 2);
+    var secondTeam = jugadores.slice(2);
 
-    ref.push(points);
+    const ref = database.ref(`ligas/${leagueId}/partidas/${partidaId}/teams`);
+
+    const team1 = firstTeam.map(({ id, name }: any) => ({ id, name }));
+    const team2 = secondTeam.map(({ id, name }: any) => ({ id, name }));
+    if (teamNumberId == 1) {
+      team1.push(points);
+    } else {
+      team2.push(points);
+    }
+
+    await ref.set({
+      FirstTeam: team1,
+      SecondTeam: team2,
+    });
   };
 
   return (
