@@ -4,6 +4,7 @@ import { PlayerCard } from "../PlayerCard";
 interface Player {
   id: string;
   name: string;
+  isPlaying?: any;
 }
 
 interface GameSelectionProps {
@@ -28,7 +29,7 @@ export const GameSelection: React.FC<GameSelectionProps> = ({
           <PlayerCard
             key={player.id}
             player={player}
-            isSelected={selectedPlayers.some((p) => p.id === player.id)}
+            isSelected={selectedPlayers.some((p) => p.id === player.id && !player.isPlaying)}
             onClick={onPlayerSelect}
           />
         ))}

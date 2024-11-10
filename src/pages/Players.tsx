@@ -24,10 +24,7 @@ export const Players = () =>  {
   }, [leagueId]);
 
   const handleAgregarJugador = () => {
-    if (jugadorName.trim() === '') {
-      alert("El nombre del jugador no puede estar vacío.");
-      return;
-    }
+    if(!nameValidations()) return;
 
     const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
     push(jugadoresRef, {
@@ -36,6 +33,7 @@ export const Players = () =>  {
       partidasPerdidas: 0,
       average: 0,
       totalPartidas: 0, // Add total partidas field
+      isPlaying: false
     });
     setJugadorName('');
   };
@@ -57,11 +55,8 @@ export const Players = () =>  {
   };
 
   const handleGuardarCambios = (jugadorId:string) => {
-    if (nuevoNombre.trim() === '') {
-      alert("El nuevo nombre no puede estar vacío.");
-      return;
-    }
-
+     if(!nameValidations()) return;
+    
     const jugadorRef = ref(database, `ligas/${leagueId}/jugadores/${jugadorId}`);
     update(jugadorRef, { name: nuevoNombre })
       .then(() => {
@@ -73,6 +68,28 @@ export const Players = () =>  {
         console.error("Error al actualizar el nombre del jugador:", error);
       });
   };
+   
+  const nameValidations = () => {
+
+    let format = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+    let isValid = true;
+    if (jugadorName.trim() === '') {
+      alert("El nuevo nombre no puede estar vacío.");
+      isValid  = false;
+    }
+
+   else if (jugadorName.length > 1 && jugadorName.length <= 3) {
+      alert("El nuevo nombre debe tener mas de 3 caracteres.");
+      isValid  = false;
+    }
+
+    else if(format.test(jugadorName)) {
+      alert("Los caracteres especiales no son permitidos.");
+      isValid  = false;
+    }
+
+     return isValid;
+  }
 
   const handleVerEstadisticas = (jugador:any) => {
     setSelectedJugador(jugador);
