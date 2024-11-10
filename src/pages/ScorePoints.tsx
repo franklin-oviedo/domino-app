@@ -87,6 +87,8 @@ export const ScorePoints = () => {
 
     if (equipo === 1) {
       setPuntosEquipo1(actualizarEquipo(1));
+      console.log(partidaId);
+
       savePoints(partidaId!, 1, actualizarEquipo(1));
       setHistorialEquipo1((prev) => {
         const nuevoRegistro = {
@@ -102,7 +104,7 @@ export const ScorePoints = () => {
           : [...prev, nuevoRegistro];
       });
     } else {
-      // savePoints(partidaId!, 2, actualizarEquipo(2));
+      savePoints(partidaId!, 2, actualizarEquipo(2));
 
       setPuntosEquipo2(actualizarEquipo(2));
       setHistorialEquipo2((prev) => {
@@ -202,24 +204,28 @@ export const ScorePoints = () => {
     teamNumberId = 1,
     points = 0
   ) => {
-    let teamId = teamNumberId == 1 ? "FirstTeam" : "SecondTeam";
     var firstTeam = jugadores.slice(0, 2);
     var secondTeam = jugadores.slice(2);
 
     const ref = database.ref(`ligas/${leagueId}/partidas/${partidaId}/teams`);
 
-    const team1 = firstTeam.map(({ id, name }: any) => ({ id, name }));
-    const team2 = secondTeam.map(({ id, name }: any) => ({ id, name }));
+    const team1 = firstTeam
+      .filter((x: any) => x.id != undefined)
+      .map(({ id, name }: any) => ({ id, name }));
+    const team2 = secondTeam
+      .filter((x: any) => x.id != undefined)
+      .map(({ id, name }: any) => ({ id, name }));
     if (teamNumberId == 1) {
       team1.push(points);
+      await ref.update({
+        FirstTeam: team1,
+      });
     } else {
       team2.push(points);
+      await ref.update({
+        SecondTeam: team2,
+      });
     }
-
-    await ref.set({
-      FirstTeam: team1,
-      SecondTeam: team2,
-    });
   };
 
   return (

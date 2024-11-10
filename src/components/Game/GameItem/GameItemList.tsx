@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { GameItem } from "./GameItem";
 import { Game } from "../../../pages/StartGame";
 
@@ -14,6 +14,10 @@ export const GameList: React.FC<GameListProps> = ({
   onJoinGame,
   onDeleteGame,
 }) => {
+  useEffect(()=>{
+    console.log(games);
+    
+  },[])
   if (games.length === 0) return <p>No hay partidas.</p>;
 
   return (

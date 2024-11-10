@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Game } from "../../../pages/StartGame";
 
 interface GameItemProps {
@@ -12,6 +12,10 @@ export const GameItem: React.FC<GameItemProps> = ({
   onJoin,
   onDelete,
 }) => {
+  useEffect(()=>{
+    console.log(game);
+    
+  },[])
   const team1 = game.teams?.FirstTeam.map((x) => x.name).join(" & ");
   const team2 = game.teams?.SecondTeam.map((x) => x.name).join(" & ");
   return (
