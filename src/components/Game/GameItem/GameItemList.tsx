@@ -18,9 +18,9 @@ export const GameList: React.FC<GameListProps> = ({
 
   return (
     <ul className="list-group">
-      {games.map((game) => (
+      {games.map((game,index) => (
         <GameItem
-          key={game.id}
+          key={game.id+index}
           game={game}
           onJoin={onJoinGame}
           onDelete={onDeleteGame}
