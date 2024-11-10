@@ -21,11 +21,6 @@ export const LeagueOptions = () => {
       title: "Ver Jugadores en la Liga",
       description: "Mira la lista de jugadores que pertenecen a esta liga.",
     },
-    {
-      path: ROUTE_PATHS.GAMES_IN_PROGRESS.replace(":leagueId", leagueId!),
-      title: "Ver Todas las Partidas en Curso",
-      description: "Revisa las partidas que están actualmente en curso.",
-    },
   ];
 
   return (
