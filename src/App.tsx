@@ -3,7 +3,6 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ROUTE_PATHS } from './helpers/routes';
-import { GamesInProgress } from './pages/GamesInProgress';
 import { Home } from './pages/Home';
 import { LeagueOptions } from './pages/LeagueOptions';
 import { Players } from './pages/Players';
@@ -17,7 +16,6 @@ const ROUTES = [
   { path: ROUTE_PATHS.LEAGUE_OPTIONS, element: <LeagueOptions /> },
   { path: ROUTE_PATHS.PLAYERS, element: <Players /> },
   { path: ROUTE_PATHS.START_GAME, element: <StartGame /> },
-  { path: ROUTE_PATHS.GAMES_IN_PROGRESS, element: <GamesInProgress /> },
   { path: ROUTE_PATHS.SCORE_POINTS, element: <ScorePoints /> },
   { path: ROUTE_PATHS.STATISTICS, element: <Statistics /> },
   { path: ROUTE_PATHS.PLAYER_STATISTICS, element: <Statistics /> },
