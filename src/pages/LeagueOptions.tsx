@@ -45,8 +45,8 @@ export const LeagueOptions = () => {
             ))}
           </div>
           <div className="text-center mt-4">
-            <Link to="/" className="btn btn-secondary">
-              Volver al Home
+            <Link to="/" className="btn btn-info">
+            <i className="bi bi-house fs-4"></i>
             </Link>
           </div>
         </div>

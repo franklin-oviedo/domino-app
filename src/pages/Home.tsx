@@ -47,26 +47,27 @@ export const Home = () => {
 
   return (
     <div>
-      <h2 className="text-center mb-4">Create or Select League</h2>
+      <h2 className="text-center mb-4">Crear liga nueva</h2>
 
       <div className="input-group mb-3">
         <input
           type="text"
           value={ligaName}
           onChange={(e) => setLigaName(e.target.value)}
-          placeholder="League Name"
+          placeholder="Nombre de liga nueva"
           className="form-control"
         />
         <button
+          title="Crear liga nueva"
           disabled={!ligaName}
           onClick={handleCreateLeague}
           className="btn btn-primary"
         >
-          Create League
+          <i className="bi bi-plus fs-5"></i>
         </button>
       </div>
 
-      <h4 className="text-center">Available Leagues</h4>
+      <h4 className="text-center">Ligas existentes</h4>
       <div className="list-group mb-4">
         {ligas.map((liga) => (
           <button

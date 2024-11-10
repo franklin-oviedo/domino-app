@@ -86,17 +86,17 @@ export const Players = () =>  {
 
   return (
     <div>
-      <h2>Jugadores en la Liga</h2>
       <div className="input-group mb-3">
         <input 
           type="text" 
           value={jugadorName} 
           onChange={(e) => setJugadorName(e.target.value)} 
-          placeholder="Nombre del Jugador" 
+          placeholder="Agregar jugador nuevo - Nombre del Jugador" 
           className="form-control" 
-        />
-        <button onClick={handleAgregarJugador} className="btn btn-primary">Agregar Jugador</button>
+          />
+        <button title='Agregar jugador nuevo' onClick={handleAgregarJugador} className="btn btn-primary"><i className="bi bi-person-plus-fill fs-4"></i></button>
       </div>
+      <h2>Jugadores en la Liga</h2>
       
       <div className="row">
         {jugadores.map((jugador) => (
@@ -113,19 +113,20 @@ export const Players = () =>  {
                       placeholder='text'
                     />
                     <button 
+                      title='Guardar cambios'
                       onClick={() => handleGuardarCambios(jugador.id)} 
                       className="btn btn-success"
                     >
-                      Guardar Cambios
+                     <i className="bi bi-save2 fs-5"></i>
                     </button>
                   </>
                 ) : (
                   <>
                     <h5 className="card-title">{jugador.name}</h5>
                     <div className="d-flex flex-column">
-                      <button onClick={() => handleVerEstadisticas(jugador)} className="btn btn-info mb-2">Ver Estadísticas</button>
-                      <button onClick={() => handleEditarJugador(jugador)} className="btn btn-warning mb-2">Editar</button>
-                      <button onClick={() => handleEliminarJugador(jugador.id)} className="btn btn-danger">Eliminar</button>
+                      <button title='Ver Estadísticas' onClick={() => handleVerEstadisticas(jugador)} className="btn btn-info mb-2"><i className="bi bi-table fs-6"></i></button>
+                      <button title='Editar' onClick={() => handleEditarJugador(jugador)} className="btn btn-warning mb-2"><i className="bi bi-pencil-square fs-6"></i></button>
+                      <button title='Eliminar' onClick={() => handleEliminarJugador(jugador.id)} className="btn btn-danger"><i className="bi bi-trash3 fs-6"></i></button>
                     </div>
                   </>
                 )}
@@ -135,8 +136,8 @@ export const Players = () =>  {
         ))}
       </div>
 
-      <Link to={`/iniciar-partida/${leagueId}`} className="btn btn-success mt-4">Iniciar Partida</Link>
-      <Link to="/" className="btn btn-secondary mt-4">Volver al Home</Link>
+      <Link to={`/start-game/${leagueId}`} className="btn btn-success mt-4"><i className="bi bi-play fs-4"></i></Link>
+      <Link to="/" className="btn btn-info mt-4"><i className="bi bi-house fs-4"></i></Link>
 
       {/* Modal for player statistics */}
       <Modal show={showStatsModal} onHide={handleCloseModal}>

@@ -36,8 +36,8 @@ export const GameSelection: React.FC<GameSelectionProps> = ({
 
       {selectedPlayers.length === 4 && (
         <div className="mt-4">
-          <button className="btn btn-success" onClick={onStartGame}>
-            Iniciar Partida
+          <button title="Iniciar partida" className="btn btn-success" onClick={onStartGame}>
+          <i className="bi bi-play fs-4"></i>
           </button>
         </div>
       )}
