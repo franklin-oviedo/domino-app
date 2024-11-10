@@ -19,6 +19,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, isSelected, onCl
         onClick={() => onClick(player)}
       >
         <div className="card-body text-center">
+          <i className="bi bi-person fs-2"></i>
           <h5 className="card-title">{player.name}</h5>
         </div>
       </div>

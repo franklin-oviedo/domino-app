@@ -25,16 +25,18 @@ export const GameItem: React.FC<GameItemProps> = ({
       </span>
       <div>
         <button
+          title="Ver partida en curso"
           className="btn btn-info btn-sm me-2"
           onClick={() => onJoin(game)}
         >
-          Entrar
+          <i className="bi bi-eye fs-6"></i>
         </button>
         <button
+          title="Borrar"
           className="btn btn-danger btn-sm"
           onClick={() => onDelete(game.id)}
         >
-          Borrar
+          <i className="bi bi-trash3 fs-6"></i>
         </button>
       </div>
     </li>

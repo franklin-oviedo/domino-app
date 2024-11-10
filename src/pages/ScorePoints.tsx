@@ -57,7 +57,7 @@ export const ScorePoints = () => {
   const handleCloseModal = () => setShowModal(false);
 
   const handleAgregarPuntos = useCallback(() => {
-    if (puntosInput <= 0 || puntosInput > 200) {
+    if (puntosInput <= 0) {
       setError("Los puntos deben estar entre 1 y 200");
       return;
     }
@@ -230,11 +230,11 @@ export const ScorePoints = () => {
 
   return (
     <div className="container mt-4">
-      <h2 className="text-center mb-4">Anotar Puntos</h2>
+      <h2 className="text-center mb-4">Pizarra Puntos</h2>
       {error && <Alert variant="danger">{error}</Alert>}
       <Row className="align-items-center">
         <Col>
-          <Card className={`mb-3 ${isFinalized ? "bg-danger text-white" : ""}`}>
+          <Card className={`mb-3 ${isFinalized ? "bg-success text-white" : ""}`}>
             <Card.Body>
               <Card.Title>
                 Equipo 1:{" "}
@@ -254,7 +254,7 @@ export const ScorePoints = () => {
               <ListGroup className="mt-3">
                 {historialEquipo1.map((registro, index) => (
                   <ListGroup.Item key={index}>
-                    +{registro.puntos} puntos ({registro.timestamp})
+                    +{registro.puntos} puntos
                   </ListGroup.Item>
                 ))}
               </ListGroup>
@@ -267,7 +267,7 @@ export const ScorePoints = () => {
         </Col>
 
         <Col>
-          <Card className={`mb-3 ${isFinalized ? "bg-danger text-white" : ""}`}>
+          <Card className={`mb-3 ${isFinalized ? "bg-success text-white" : ""}`}>
             <Card.Body>
               <Card.Title>
                 Equipo 2:{" "}
@@ -287,7 +287,7 @@ export const ScorePoints = () => {
               <ListGroup className="mt-3">
                 {historialEquipo2.map((registro, index) => (
                   <ListGroup.Item key={index}>
-                    +{registro.puntos} puntos ({registro.timestamp})
+                    +{registro.puntos} puntos
                   </ListGroup.Item>
                 ))}
               </ListGroup>
@@ -354,7 +354,7 @@ export const ScorePoints = () => {
       </Modal>
 
       {isFinalized && (
-        <h3 className="text-danger text-center mt-4">
+        <h3 className="text-success text-center mt-4">
           ¡La partida ha finalizado!
         </h3>
       )}
