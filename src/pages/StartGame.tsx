@@ -177,7 +177,6 @@ const StartGame: React.FC = () => {
       <GameList
         games={finishedGames}
         onJoinGame={enterGame}
-        onDeleteGame={deleteGame}
       />
     </div>
   );

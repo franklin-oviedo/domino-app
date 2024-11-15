@@ -6,7 +6,7 @@ import { Game } from "../../../pages/StartGame";
 interface GameListProps {
   games: Game[];
   onJoinGame: (game: Game) => void;
-  onDeleteGame: (gameId: string) => void;
+  onDeleteGame?: (gameId: string) => void;
 }
 
 export const GameList: React.FC<GameListProps> = ({
@@ -27,7 +27,7 @@ export const GameList: React.FC<GameListProps> = ({
           key={game.id+index}
           game={game}
           onJoin={onJoinGame}
-          onDelete={onDeleteGame}
+          onDelete={onDeleteGame ? () => onDeleteGame(game.id) : () => {}}
         />
       ))}
     </ul>

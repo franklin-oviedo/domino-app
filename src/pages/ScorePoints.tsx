@@ -1,261 +1,138 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import {
-  Modal,
-  Button,
-  Card,
-  Row,
-  Col,
-  ListGroup,
-  Alert,
-} from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { useLocation, useParams } from "react-router-dom";
+import { Modal, Button, Card, Row, Col, ListGroup } from "react-bootstrap";
 import firebase from "firebase/compat/app";
 import "firebase/compat/database";
-import { database } from "../firebase";
 
-export const ScorePoints = () => {
-  const { state } = useLocation();
-  const { jugadores, partidaId } = state || { jugadores: [] };
-  const navigate = useNavigate();
-  const { leagueId } = useParams();
+interface ScorePointsState {
+  partidaId: string;
+}
 
-  const [puntosEquipo1, setPuntosEquipo1] = useState<any>({});
-  const [puntosEquipo2, setPuntosEquipo2] = useState<any>({});
-  const [historialEquipo1, setHistorialEquipo1] = useState<any[]>([]);
-  const [historialEquipo2, setHistorialEquipo2] = useState<any[]>([]);
+export const ScorePoints: React.FC = () => {
+  const { state } = useLocation() as { state: ScorePointsState };
+  const { partidaId } = state || {};
+  const { leagueId } = useParams<{ leagueId: string }>();
+
+  const [puntosFirstTeam, setPuntosFirstTeam] = useState<Record<string, number>>({});
+  const [puntosSecondTeam, setPuntosSecondTeam] = useState<Record<string, number>>({});
   const [showModal, setShowModal] = useState(false);
   const [puntosInput, setPuntosInput] = useState(0);
-  const [equipo, setEquipo] = useState(1);
-  const [isFinalized, setIsFinalized] = useState(false);
-  const [winner, setWinner] = useState(null);
-  const [winnerPlayers, setWinnerPlayers] = useState<any[]>([]);
-  const [error, setError] = useState("");
+  const [equipo, setEquipo] = useState<number>(1);
+  const [winner, setWinner] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!partidaId) return;
+    if (!partidaId || !leagueId) return;
 
-    const partidaRef = firebase.database().ref(`partidas/${partidaId}`);
+    const partidaRef = firebase.database().ref(`ligas/${leagueId}/partidas/${partidaId}`);
     partidaRef.on("value", (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        setPuntosEquipo1(data.puntosEquipo1 || {});
-        setPuntosEquipo2(data.puntosEquipo2 || {});
-        setHistorialEquipo1(data.historialEquipo1 || []);
-        setHistorialEquipo2(data.historialEquipo2 || []);
-        setIsFinalized(data.finalizado || false);
+        setPuntosFirstTeam(data.teams.FirstTeam?.[2] || {});
+        setPuntosSecondTeam(data.teams.SecondTeam?.[2] || {});
       }
     });
 
     return () => partidaRef.off();
-  }, [partidaId]);
+  }, [partidaId, leagueId]);
 
-  const handleShowModal = (equipoSeleccionado: any) => {
+  const handleShowModal = (equipoSeleccionado: number) => {
     setEquipo(equipoSeleccionado);
     setShowModal(true);
   };
 
   const handleCloseModal = () => setShowModal(false);
 
-  const handleAgregarPuntos = useCallback(() => {
-    if (puntosInput <= 0) {
-      setError("Los puntos deben estar entre 1 y 200");
-      return;
-    }
-
-    const newPuntos = { [new Date().getTime()]: puntosInput };
-
-    const actualizarEquipo = (equipo: any) => {
-      const puntos = equipo === 1 ? puntosEquipo1 : puntosEquipo2;
-
-      const updatedPuntos = { ...puntos, ...newPuntos };
-      const nuevoRegistro = {
-        puntos: puntosInput,
-        timestamp: new Date().toLocaleString(),
-      };
-
-      const total: any = calcularTotal(updatedPuntos);
-      if (total >= 200) {
-        finalizarPartida(
-          `Equipo ${equipo}`,
-          jugadores.slice((equipo - 1) * 2, equipo * 2),
-          jugadores.slice(equipo * 2)
-        );
-      }
-
-      return updatedPuntos;
-    };
-
-    if (equipo === 1) {
-      setPuntosEquipo1(actualizarEquipo(1));
-      console.log(partidaId);
-
-      savePoints(partidaId!, 1, actualizarEquipo(1));
-      setHistorialEquipo1((prev) => {
-        const nuevoRegistro = {
-          puntos: puntosInput,
-          timestamp: new Date().toLocaleString(),
-        };
-        return prev.some(
-          (registro) =>
-            registro.puntos === nuevoRegistro.puntos &&
-            registro.timestamp === nuevoRegistro.timestamp
-        )
-          ? prev
-          : [...prev, nuevoRegistro];
-      });
-    } else {
-      savePoints(partidaId!, 2, actualizarEquipo(2));
-
-      setPuntosEquipo2(actualizarEquipo(2));
-      setHistorialEquipo2((prev) => {
-        const nuevoRegistro = {
-          puntos: puntosInput,
-          timestamp: new Date().toLocaleString(),
-        };
-        return prev.some(
-          (registro) =>
-            registro.puntos === nuevoRegistro.puntos &&
-            registro.timestamp === nuevoRegistro.timestamp
-        )
-          ? prev
-          : [...prev, nuevoRegistro];
-      });
-    }
-
-    // setPuntosInput(0);
-    handleCloseModal();
-    setError(""); // Limpiar el mensaje de error
-  }, [puntosInput, equipo, jugadores, partidaId]);
-
-  const finalizarPartida = (
-    winningTeam: any,
-    winningPlayers: any,
-    losingPlayers: any
-  ) => {
-    setIsFinalized(true);
-    setWinner(winningTeam);
-    setWinnerPlayers(winningPlayers);
-
-    const partidaRef = firebase.database().ref(`partidas/${partidaId}`);
-    partidaRef.once("value").then((snapshot) => {
-      const partidaData = snapshot.val();
-      const datosFinales = {
-        ...partidaData,
-        finalizado: true,
-        ganador: winningTeam,
-        fecha: new Date().toISOString(),
-        jugadoresGanadores: winningPlayers.map((jugador: any) => ({
-          id: jugador.id,
-          name: jugador.name,
-        })),
-        jugadoresPerdedores: losingPlayers.map((jugador: any) => ({
-          id: jugador.id,
-          name: jugador.name,
-        })),
-      };
-
-      // Actualiza el campo 'finalizado' y 'ganador' en la partida
-      partidaRef
-        .update({ finalizado: true, ganador: winningTeam })
-        .then(() => {
-          // Luego, guarda la partida finalizada en "partidasJugadas"
-          const partidasJugadasRef = firebase
-            .database()
-            .ref("partidasJugadas/");
-          return partidasJugadasRef.push(datosFinales);
-        })
-        .then(() => {
-          // Finalmente, elimina la partida de "partidas"
-          return partidaRef.remove();
-        })
-        .catch((error) =>
-          console.error("Error al finalizar la partida:", error)
-        );
-    });
-  };
-
-  const iniciarNuevaPartida = () => {
-    const nuevaPartidaRef = firebase.database().ref("partidas/").push();
-    nuevaPartidaRef
-      .set({
-        puntosEquipo1: {},
-        puntosEquipo2: {},
-        historialEquipo1: [],
-        historialEquipo2: [],
-        finalizado: false,
-        jugadores,
-      })
-      .then(() => {
-        navigate(`/anotar-puntos/${nuevaPartidaRef.key}`, {
-          state: { jugadores },
-        });
-      })
-      .catch((error) =>
-        console.error("Error al iniciar nueva partida:", error)
-      );
-  };
-
-  const calcularTotal = (puntos: number[]) => {
+  const calcularTotal = (puntos: Record<string, number>): number => {
     return Object.values(puntos).reduce((total, pts) => total + pts, 0);
   };
 
-  const savePoints = async (
-    partidaId: string,
-    teamNumberId = 1,
-    points = 0
-  ) => {
-    var firstTeam = jugadores.slice(0, 2);
-    var secondTeam = jugadores.slice(2);
+  const savePoints = async (points: number) => {
+    if (!partidaId || !leagueId) return;
 
-    const ref = database.ref(`ligas/${leagueId}/partidas/${partidaId}/teams`);
+    const partidaRef = firebase.database().ref(`ligas/${leagueId}/partidas/${partidaId}`);
+    const puntosKey = Date.now().toString();
 
-    const team1 = firstTeam
-      .filter((x: any) => x.id != undefined)
-      .map(({ id, name }: any) => ({ id, name }));
-    const team2 = secondTeam
-      .filter((x: any) => x.id != undefined)
-      .map(({ id, name }: any) => ({ id, name }));
-    if (teamNumberId == 1) {
-      team1.push(points);
-      await ref.update({
-        FirstTeam: team1,
+    const teamKey = equipo === 1 ? "FirstTeam" : "SecondTeam";
+    const currentPoints = equipo === 1 ? puntosFirstTeam : puntosSecondTeam;
+
+    const newPoints = {
+      ...currentPoints,
+      [puntosKey]: points,
+    };
+
+    const totalPoints = calcularTotal(newPoints);
+
+    // Actualizar la posición 3 en el equipo seleccionado
+    await partidaRef.update({
+      [`teams/${teamKey}/2`]: newPoints,
+    });
+
+    // Verificar si el total de puntos ha superado el umbral para finalizar la partida
+    if (totalPoints >= 200) {
+      // Si el equipo tiene más puntos que el otro, se define al ganador y perdedor
+      const idTeamWinner = equipo === 1 ? "FirstTeam" : "SecondTeam";
+      const idTeamLooser = equipo === 1 ? "SecondTeam" : "FirstTeam";
+
+      // Actualizar el estado de la partida a finalizada
+      await partidaRef.update({
+        ended: true,
+        idTeamWinner: idTeamWinner,
+        idTeamLooser: idTeamLooser,
       });
-    } else {
-      team2.push(points);
-      await ref.update({
-        SecondTeam: team2,
-      });
+
+      setWinner(equipo === 1 ? "Equipo 1" : "Equipo 2");
+
+      // Actualizar jugadores al finalizar la partida
+      const jugadoresRef = firebase.database().ref(`ligas/${leagueId}/jugadores`);
+      const jugadores = await jugadoresRef.once("value");
+      const jugadoresData = jugadores.val();
+
+      const updateJugadorStats = async (jugadorId: string, ganador: boolean) => {
+        const jugadorRef = firebase.database().ref(`ligas/${leagueId}/jugadores/${jugadorId}`);
+        const jugadorData = jugadoresData[jugadorId];
+
+        // Actualizar estadísticas de jugadores
+        await jugadorRef.update({
+          isPlaying: false,
+          totalPartidas: jugadorData.totalPartidas + 1,
+          partidasGanadas: ganador ? jugadorData.partidasGanadas + 1 : jugadorData.partidasGanadas,
+          partidasPerdidas: ganador ? jugadorData.partidasPerdidas : jugadorData.partidasPerdidas + 1,
+        });
+      };
+
+      // Recorrer todos los jugadores de los equipos para actualizarlos
+      for (let jugadorId in jugadoresData) {
+        const jugador = jugadoresData[jugadorId];
+        if (jugador.isPlaying) {
+          const esGanador = (equipo === 1 && idTeamWinner === "FirstTeam") || (equipo === 2 && idTeamWinner === "SecondTeam");
+          await updateJugadorStats(jugadorId, esGanador);
+        }
+      }
     }
+
+    setShowModal(false);
   };
 
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-4">Pizarra Puntos</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
       <Row className="align-items-center">
         <Col>
-          <Card className={`mb-3 ${isFinalized ? "bg-success text-white" : ""}`}>
+          <Card className="mb-3">
             <Card.Body>
-              <Card.Title>
-                Equipo 1:{" "}
-                {/* {jugadores
-                  .slice(0, 2)
-                  .map((j: any) => j.name)
-                  .join(" - ")} */}
-              </Card.Title>
-              <Card.Text>Total: {calcularTotal(puntosEquipo1)}</Card.Text>
+              <Card.Title>Equipo 1</Card.Title>
+              {/* Aquí puedes agregar los nombres de los jugadores dinámicamente */}
+              <Card.Text>Total: {calcularTotal(puntosFirstTeam)}</Card.Text>
               <Button
                 variant="primary"
                 onClick={() => handleShowModal(1)}
-                disabled={isFinalized}
+                disabled={winner !== null}
               >
                 Agregar Puntos
               </Button>
               <ListGroup className="mt-3">
-                {historialEquipo1.map((registro, index) => (
-                  <ListGroup.Item key={index}>
-                    +{registro.puntos} puntos
-                  </ListGroup.Item>
+                {Object.entries(puntosFirstTeam).map(([key, puntos]) => (
+                  <ListGroup.Item key={key}>+{puntos} puntos</ListGroup.Item>
                 ))}
               </ListGroup>
             </Card.Body>
@@ -267,28 +144,20 @@ export const ScorePoints = () => {
         </Col>
 
         <Col>
-          <Card className={`mb-3 ${isFinalized ? "bg-success text-white" : ""}`}>
+          <Card className="mb-3">
             <Card.Body>
-              <Card.Title>
-                Equipo 2:{" "}
-                {/* {jugadores
-                  .slice(2)
-                  .map((j: any) => j.name)
-                  .join(" - ")} */}
-              </Card.Title>
-              <Card.Text>Total: {calcularTotal(puntosEquipo2)}</Card.Text>
+              <Card.Title>Equipo 2</Card.Title>
+              <Card.Text>Total: {calcularTotal(puntosSecondTeam)}</Card.Text>
               <Button
                 variant="primary"
                 onClick={() => handleShowModal(2)}
-                disabled={isFinalized}
+                disabled={winner !== null}
               >
                 Agregar Puntos
               </Button>
               <ListGroup className="mt-3">
-                {historialEquipo2.map((registro, index) => (
-                  <ListGroup.Item key={index}>
-                    +{registro.puntos} puntos
-                  </ListGroup.Item>
+                {Object.entries(puntosSecondTeam).map(([key, puntos]) => (
+                  <ListGroup.Item key={key}>+{puntos} puntos</ListGroup.Item>
                 ))}
               </ListGroup>
             </Card.Body>
@@ -324,7 +193,7 @@ export const ScorePoints = () => {
           <Button variant="secondary" onClick={handleCloseModal}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={handleAgregarPuntos}>
+          <Button variant="primary" onClick={() => savePoints(puntosInput)}>
             Agregar
           </Button>
         </Modal.Footer>
@@ -335,16 +204,7 @@ export const ScorePoints = () => {
           <Modal.Title>¡Fin de la Partida!</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <h5>{winner} ha ganado la partida.</h5>
-          <h6>Jugadores ganadores:</h6>
-          <ul>
-            {winnerPlayers.map((jugador) => (
-              <li key={jugador.id}>{jugador.name}</li>
-            ))}
-          </ul>
-          <Button variant="primary" onClick={iniciarNuevaPartida}>
-            Iniciar Nueva Partida
-          </Button>
+          <h3>Ganador: {winner}</h3>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setWinner(null)}>
@@ -352,12 +212,6 @@ export const ScorePoints = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-      {isFinalized && (
-        <h3 className="text-success text-center mt-4">
-          ¡La partida ha finalizado!
-        </h3>
-      )}
     </div>
   );
 };
