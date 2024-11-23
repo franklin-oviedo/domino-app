@@ -3,6 +3,7 @@ import { database } from "../firebase";
 import "firebase/compat/database"; // Ensure database is imported
 import { useNavigate } from "react-router-dom";
 import { ROUTE_PATHS } from "../helpers/routes";
+import { SessionStorageKeys } from "../constants/sessionStorageKeys";
 
 export const Home = () => {
   const [ligaName, setLigaName] = useState("");
@@ -34,7 +35,9 @@ export const Home = () => {
       .set({ name: ligaName })
       .then(() => {
         setLigaName("");
-        navigate(ROUTE_PATHS.LEAGUE_OPTIONS.replace(":leagueId", newLigaRef.key!));
+        navigate(
+          ROUTE_PATHS.LEAGUE_OPTIONS.replace(":leagueId", newLigaRef.key!)
+        );
       })
       .catch((error) => {
         console.error("Error creating league:", error);
@@ -42,6 +45,7 @@ export const Home = () => {
   };
 
   const handleSelectLeague = (leagueId: string) => {
+    sessionStorage.setItem(SessionStorageKeys.LEAGUE_ID, leagueId!);
     navigate(ROUTE_PATHS.LEAGUE_OPTIONS.replace(":leagueId", leagueId));
   };
 
@@ -79,9 +83,7 @@ export const Home = () => {
           </button>
         ))}
       </div>
-      {ligas.length === 0 && (
-        <p className="text-center">No leagues created.</p>
-      )}
+      {ligas.length === 0 && <p className="text-center">No leagues created.</p>}
     </div>
   );
 };
