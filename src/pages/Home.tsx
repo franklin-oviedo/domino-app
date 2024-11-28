@@ -1,51 +1,38 @@
 import { useState, useEffect } from "react";
-import { database } from "../firebase";
-import "firebase/compat/database"; // Ensure database is imported
 import { useNavigate } from "react-router-dom";
 import { ROUTE_PATHS } from "../helpers/routes";
 import { SessionStorageKeys } from "../constants/sessionStorageKeys";
+import { getLeagues, createLeague, League } from "../services/leaguesService";
 
 export const Home = () => {
   const [ligaName, setLigaName] = useState("");
-  const [ligas, setLigas] = useState<any[]>([]);
+  const [ligas, setLigas] = useState<League[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const ligasRef = database.ref("ligas/");
-    ligasRef.on("value", (snapshot) => {
-      const data = snapshot.val();
-      const ligasList = data
-        ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
-        : [];
-      setLigas(ligasList);
-    });
+    const unsubscribe = getLeagues(setLigas);
 
-    return () => ligasRef.off();
+    return () => unsubscribe(); // Clean up the Firebase listener
   }, []);
 
-  const handleCreateLeague = () => {
+  const handleCreateLeague = async () => {
     if (ligaName.trim() === "") {
       alert("League name cannot be empty.");
       return;
     }
 
-    const ligasRef = database.ref("ligas/");
-    const newLigaRef = ligasRef.push();
-    newLigaRef
-      .set({ name: ligaName })
-      .then(() => {
-        setLigaName("");
-        navigate(
-          ROUTE_PATHS.LEAGUE_OPTIONS.replace(":leagueId", newLigaRef.key!)
-        );
-      })
-      .catch((error) => {
-        console.error("Error creating league:", error);
-      });
+    try {
+      const leagueId = await createLeague(ligaName);
+      setLigaName("");
+      navigate(ROUTE_PATHS.LEAGUE_OPTIONS.replace(":leagueId", leagueId!));
+      sessionStorage.setItem(SessionStorageKeys.LEAGUE_ID, leagueId!);
+    } catch (error) {
+      console.error("Error creating league:", error);
+    }
   };
 
   const handleSelectLeague = (leagueId: string) => {
-    sessionStorage.setItem(SessionStorageKeys.LEAGUE_ID, leagueId!);
+    sessionStorage.setItem(SessionStorageKeys.LEAGUE_ID, leagueId);
     navigate(ROUTE_PATHS.LEAGUE_OPTIONS.replace(":leagueId", leagueId));
   };
 
@@ -77,7 +64,7 @@ export const Home = () => {
           <button
             key={liga.id}
             className="list-group-item list-group-item-action"
-            onClick={() => handleSelectLeague(liga.id)}
+            onClick={() => handleSelectLeague(liga.id!)}
           >
             {liga.name}
           </button>

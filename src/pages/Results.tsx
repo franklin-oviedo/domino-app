@@ -1,28 +1,21 @@
-// src/components/Resultados.js
 import { useEffect, useState } from "react";
-import { database } from "../firebase";
-import { ref, onValue } from "firebase/database";
 import { useParams } from "react-router-dom";
+import { getPlayersByLeague } from "../services/playersService";
 
 export const Results = () => {
   const { leagueId, equipoGanador } = useParams();
   const [jugadores, setJugadores] = useState<any[]>([]);
 
   useEffect(() => {
-    const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
-    onValue(jugadoresRef, (snapshot) => {
-      const data = snapshot.val();
-      const jugadoresList = data
-        ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
-        : [];
-      setJugadores(jugadoresList);
-    });
+    if (!leagueId) return;
+
+    const unsubscribe = getPlayersByLeague(leagueId, setJugadores);
+
+    return () => unsubscribe(); // Cleanup listener on unmount
   }, [leagueId]);
 
-  const jugadoresGanadores = jugadores.filter(
-    (index) =>
-      (equipoGanador === "1" && index < 2) ||
-      (equipoGanador === "2" && index >= 2)
+  const jugadoresGanadores = jugadores.filter((_, index) =>
+    equipoGanador === "1" ? index < 2 : index >= 2
   );
 
   return (
@@ -41,5 +34,4 @@ export const Results = () => {
       </ul>
     </div>
   );
-}
-
+};

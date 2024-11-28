@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { Modal, Button, Card, Row, Col, ListGroup } from "react-bootstrap";
-import firebase from "firebase/compat/app";
-import "firebase/compat/database";
+import {
+  subscribeToGame,
+  savePoints,
+  endGame,
+  updatePlayerStats,
+} from "../services/gameService";
+import { getPlayers } from "../services/playersService";
 
 interface ScorePointsState {
   partidaId: string;
@@ -13,8 +18,12 @@ export const ScorePoints: React.FC = () => {
   const { partidaId } = state || {};
   const { leagueId } = useParams<{ leagueId: string }>();
 
-  const [puntosFirstTeam, setPuntosFirstTeam] = useState<Record<string, number>>({});
-  const [puntosSecondTeam, setPuntosSecondTeam] = useState<Record<string, number>>({});
+  const [puntosFirstTeam, setPuntosFirstTeam] = useState<
+    Record<string, number>
+  >({});
+  const [puntosSecondTeam, setPuntosSecondTeam] = useState<
+    Record<string, number>
+  >({});
   const [showModal, setShowModal] = useState(false);
   const [puntosInput, setPuntosInput] = useState(0);
   const [equipo, setEquipo] = useState<number>(1);
@@ -23,16 +32,14 @@ export const ScorePoints: React.FC = () => {
   useEffect(() => {
     if (!partidaId || !leagueId) return;
 
-    const partidaRef = firebase.database().ref(`ligas/${leagueId}/partidas/${partidaId}`);
-    partidaRef.on("value", (snapshot) => {
-      const data = snapshot.val();
+    const unsubscribe = subscribeToGame(leagueId, partidaId, (data) => {
       if (data) {
         setPuntosFirstTeam(data.teams.FirstTeam?.[2] || {});
         setPuntosSecondTeam(data.teams.SecondTeam?.[2] || {});
       }
     });
 
-    return () => partidaRef.off();
+    return () => unsubscribe(); // Cleanup subscription on unmount
   }, [partidaId, leagueId]);
 
   const handleShowModal = (equipoSeleccionado: number) => {
@@ -46,66 +53,41 @@ export const ScorePoints: React.FC = () => {
     return Object.values(puntos).reduce((total, pts) => total + pts, 0);
   };
 
-  const savePoints = async (points: number) => {
+  const handleSavePoints = async (points: number) => {
     if (!partidaId || !leagueId) return;
-
-    const partidaRef = firebase.database().ref(`ligas/${leagueId}/partidas/${partidaId}`);
-    const puntosKey = Date.now().toString();
 
     const teamKey = equipo === 1 ? "FirstTeam" : "SecondTeam";
     const currentPoints = equipo === 1 ? puntosFirstTeam : puntosSecondTeam;
 
     const newPoints = {
       ...currentPoints,
-      [puntosKey]: points,
+      [Date.now().toString()]: points,
     };
 
     const totalPoints = calcularTotal(newPoints);
 
-    // Actualizar la posición 3 en el equipo seleccionado
-    await partidaRef.update({
-      [`teams/${teamKey}/2`]: newPoints,
-    });
+    await savePoints(leagueId, partidaId, teamKey, newPoints);
 
-    // Verificar si el total de puntos ha superado el umbral para finalizar la partida
     if (totalPoints >= 200) {
-      // Si el equipo tiene más puntos que el otro, se define al ganador y perdedor
-      const idTeamWinner = equipo === 1 ? "FirstTeam" : "SecondTeam";
-      const idTeamLooser = equipo === 1 ? "SecondTeam" : "FirstTeam";
+      const winnerKey = equipo === 1 ? "FirstTeam" : "SecondTeam";
+      const loserKey = equipo === 1 ? "SecondTeam" : "FirstTeam";
 
-      // Actualizar el estado de la partida a finalizada
-      await partidaRef.update({
-        ended: true,
-        idTeamWinner: idTeamWinner,
-        idTeamLooser: idTeamLooser,
-      });
-
+      await endGame(leagueId, partidaId, winnerKey, loserKey);
       setWinner(equipo === 1 ? "Equipo 1" : "Equipo 2");
 
-      // Actualizar jugadores al finalizar la partida
-      const jugadoresRef = firebase.database().ref(`ligas/${leagueId}/jugadores`);
-      const jugadores = await jugadoresRef.once("value");
-      const jugadoresData = jugadores.val();
+      let jugadores: any;
 
-      const updateJugadorStats = async (jugadorId: string, ganador: boolean) => {
-        const jugadorRef = firebase.database().ref(`ligas/${leagueId}/jugadores/${jugadorId}`);
-        const jugadorData = jugadoresData[jugadorId];
+      getPlayers((data) => {
+        jugadores = data.filter((player) => !player.isPlaying);
+      });
 
-        // Actualizar estadísticas de jugadores
-        await jugadorRef.update({
-          isPlaying: false,
-          totalPartidas: jugadorData.totalPartidas + 1,
-          partidasGanadas: ganador ? jugadorData.partidasGanadas + 1 : jugadorData.partidasGanadas,
-          partidasPerdidas: ganador ? jugadorData.partidasPerdidas : jugadorData.partidasPerdidas + 1,
-        });
-      };
-
-      // Recorrer todos los jugadores de los equipos para actualizarlos
-      for (let jugadorId in jugadoresData) {
-        const jugador = jugadoresData[jugadorId];
+      for (const jugadorId in jugadores) {
+        const jugador = jugadores[jugadorId];
         if (jugador.isPlaying) {
-          const esGanador = (equipo === 1 && idTeamWinner === "FirstTeam") || (equipo === 2 && idTeamWinner === "SecondTeam");
-          await updateJugadorStats(jugadorId, esGanador);
+          const isWinner =
+            (equipo === 1 && winnerKey === "FirstTeam") ||
+            (equipo === 2 && winnerKey === "SecondTeam");
+          await updatePlayerStats(leagueId, jugadorId, jugador, isWinner);
         }
       }
     }
@@ -117,101 +99,84 @@ export const ScorePoints: React.FC = () => {
     <div className="container mt-4">
       <h2 className="text-center mb-4">Pizarra Puntos</h2>
       <Row className="align-items-center">
-        <Col>
-          <Card className="mb-3">
-            <Card.Body>
-              <Card.Title>Equipo 1</Card.Title>
-              {/* Aquí puedes agregar los nombres de los jugadores dinámicamente */}
-              <Card.Text>Total: {calcularTotal(puntosFirstTeam)}</Card.Text>
-              <Button
-                variant="primary"
-                onClick={() => handleShowModal(1)}
-                disabled={winner !== null}
-              >
-                Agregar Puntos
-              </Button>
-              <ListGroup className="mt-3">
-                {Object.entries(puntosFirstTeam).map(([key, puntos]) => (
-                  <ListGroup.Item key={key}>+{puntos} puntos</ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col className="text-center">
-          <h2 className="my-4">VS</h2>
-        </Col>
-
-        <Col>
-          <Card className="mb-3">
-            <Card.Body>
-              <Card.Title>Equipo 2</Card.Title>
-              <Card.Text>Total: {calcularTotal(puntosSecondTeam)}</Card.Text>
-              <Button
-                variant="primary"
-                onClick={() => handleShowModal(2)}
-                disabled={winner !== null}
-              >
-                Agregar Puntos
-              </Button>
-              <ListGroup className="mt-3">
-                {Object.entries(puntosSecondTeam).map(([key, puntos]) => (
-                  <ListGroup.Item key={key}>+{puntos} puntos</ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Card.Body>
-          </Card>
-        </Col>
+        {/* Team Cards */}
+        {["FirstTeam", "SecondTeam"].map((team, idx) => (
+          <Col key={team}>
+            <Card className="mb-3">
+              <Card.Body>
+                <Card.Title>{`Equipo ${idx + 1}`}</Card.Title>
+                <Card.Text>
+                  Total:{" "}
+                  {calcularTotal(
+                    idx === 0 ? puntosFirstTeam : puntosSecondTeam
+                  )}
+                </Card.Text>
+                <Button
+                  variant="primary"
+                  onClick={() => handleShowModal(idx + 1)}
+                  disabled={winner !== null}
+                >
+                  Agregar Puntos
+                </Button>
+                <ListGroup className="mt-3">
+                  {Object.entries(
+                    idx === 0 ? puntosFirstTeam : puntosSecondTeam
+                  ).map(([key, puntos]) => (
+                    <ListGroup.Item key={key}>+{puntos} puntos</ListGroup.Item>
+                  ))}
+                </ListGroup>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
       </Row>
 
+      {/* Add Points Modal */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Agregar Puntos</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="mb-3">
-            <label htmlFor="puntosInput" className="form-label">
-              Puntos a agregar:
-            </label>
-            <input
-              type="number"
-              id="puntosInput"
-              className="form-control"
-              value={puntosInput}
-              onChange={(e) =>
-                setPuntosInput(
-                  Math.max(0, Math.min(parseInt(e.target.value, 10) || 0, 200))
-                )
-              }
-              min="0"
-              max="200"
-            />
-          </div>
+          <input
+            type="number"
+            className="form-control"
+            value={puntosInput}
+            onChange={(e) =>
+              setPuntosInput(
+                Math.max(0, Math.min(parseInt(e.target.value, 10) || 0, 200))
+              )
+            }
+          />
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleCloseModal}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={() => savePoints(puntosInput)}>
+          <Button
+            variant="primary"
+            onClick={() => handleSavePoints(puntosInput)}
+          >
             Agregar
           </Button>
         </Modal.Footer>
       </Modal>
 
-      <Modal show={winner !== null} onHide={() => setWinner(null)}>
-        <Modal.Header closeButton>
-          <Modal.Title>¡Fin de la Partida!</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <h3>Ganador: {winner}</h3>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setWinner(null)}>
-            Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* Winner Modal */}
+      {winner && (
+        <Modal show onHide={() => setWinner(null)}>
+          <Modal.Header closeButton>
+            <Modal.Title>¡Fin de la Partida!</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <h3>Ganador: {winner}</h3>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setWinner(null)}>
+              Cerrar
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </div>
   );
 };

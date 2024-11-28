@@ -19,13 +19,13 @@ export interface Player {
   isPlaying: boolean;
 }
 
-interface HttpConfig {
+interface PlayersHttpConfig {
   leagueId?: string;
   playersRef?: DatabaseReference;
   singlePlayerUrl: (playerId: string) => string;
 }
 
-const http: HttpConfig = {
+const http: PlayersHttpConfig = {
   singlePlayerUrl: () => "",
 };
 
@@ -41,6 +41,18 @@ export const getPlayers = (callback: (playerList: Player[]) => void) => {
         }))
       : [];
     callback(playerList);
+  });
+};
+export const getPlayersByLeague = (
+  leagueId: string,
+  callback: (players: any[]) => void
+) => {
+  return onValue(http.playersRef!, (snapshot) => {
+    const data = snapshot.val();
+    const players = data
+      ? Object.keys(data).map((key) => ({ id: key, ...data[key] }))
+      : [];
+    callback(players);
   });
 };
 
