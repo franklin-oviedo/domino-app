@@ -1,11 +1,17 @@
 import { Table } from "react-bootstrap";
-import { calculateAverage } from "../helpers/statiticsHelper";
+import "firebase/compat/database";
+
+
 type StatiticsTableProps = {
   categorizedPlayers: any;
 };
+
+
+
 export const StatiticsTable: React.FC<StatiticsTableProps> = ({
   categorizedPlayers,
 }) => {
+   
   const renderCategory = (categoryName: string, players: any[]) => (
     <>
       <tr className={`bg-light-blue text-white`}>
@@ -16,9 +22,9 @@ export const StatiticsTable: React.FC<StatiticsTableProps> = ({
       {players.map((jugador) => (
         <tr key={jugador.id}>
           <td>{jugador.name}</td>
-          <td>{jugador.mensual?.partidasGanadas || 0}</td>
-          <td>{jugador.mensual?.partidasPerdidas || 0}</td>
-          <td>{calculateAverage(jugador.mensual)}</td>
+          <td>{jugador?.partidasGanadas || 0}</td>
+          <td>{jugador?.partidasPerdidas || 0}</td>
+          <td>{jugador?.average} %</td>
         </tr>
       ))}
     </>
@@ -35,10 +41,10 @@ export const StatiticsTable: React.FC<StatiticsTableProps> = ({
         </tr>
       </thead>
       <tbody>
-        {renderCategory("Legendarios", categorizedPlayers.legendarios)}
-        {renderCategory("Veteranos", categorizedPlayers.veteranos)}
-        {renderCategory("Pro", categorizedPlayers.pro)}
-        {renderCategory("Rikili", categorizedPlayers.rikili)}
+        {renderCategory("Legendarios", categorizedPlayers?.legendarios ?? [])}
+        {renderCategory("Veteranos", categorizedPlayers?.veteranos ?? [])}
+        {renderCategory("Pro", categorizedPlayers?.pro ?? [])}
+        {renderCategory("Rikili", categorizedPlayers?.rikili ?? [])}
       </tbody>
     </Table>
   );

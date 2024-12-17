@@ -64,15 +64,11 @@ const StartGame: React.FC = () => {
     return () => {
       unsubscribePlayers();
       unsubscribeGames();
-      console.log(players);
     };
   }, [leagueId]);
 
   const togglePlayerSelection = (player: Player) => {
    
-    console.log(player);
-    
-    
     setSelectedPlayers((prev) =>
       prev.some((p) => p.id === player.id && !p.isPlaying)
         ? prev.filter((p) => p.id !== player.id && !p.isPlaying )
@@ -80,14 +76,11 @@ const StartGame: React.FC = () => {
         ? [...prev, player]
         : prev.filter(x => !x.isPlaying)
     );
-
-    console.log(selectedPlayers);
   };
 
   const enterGame = (game: Game) => {
     // Check if the player is in the FirstTeam or SecondTeam
-    console.log(game);
-    
+
     const isInFirstTeam = game.teams.FirstTeam.some(
       (player) => player.name === selectedPlayers[0]?.name
     );
