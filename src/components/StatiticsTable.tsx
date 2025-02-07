@@ -9,7 +9,7 @@ export const StatiticsTable: React.FC<StatiticsTableProps> = ({
   categorizedPlayers,
 }) => {
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1; // Los meses en JavaScript son 0-indexados
+  const currentMonth = new Date().getMonth(); // Los meses en JavaScript son 0-indexados y esto los convierte a 1-indexados
 
   const renderCategory = (categoryName: string, players: any[]) => (
     <>
