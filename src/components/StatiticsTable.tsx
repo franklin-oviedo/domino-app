@@ -8,6 +8,9 @@ type StatiticsTableProps = {
 export const StatiticsTable: React.FC<StatiticsTableProps> = ({
   categorizedPlayers,
 }) => {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1; // Los meses en JavaScript son 0-indexados
+
   const renderCategory = (categoryName: string, players: any[]) => (
     <>
       <tr className={`bg-light-blue text-white`}>
@@ -18,9 +21,9 @@ export const StatiticsTable: React.FC<StatiticsTableProps> = ({
       {players.map((jugador) => (
         <tr key={jugador.id}>
           <td>{jugador.name}</td>
-          <td>{jugador.statics?.["2025"]?.[1]?.Ganadas || 0}</td>
-          <td>{jugador.statics?.["2025"]?.[1]?.Perdidas || 0}</td>
-          <td>{calculateAverage(jugador.statics?.["2025"]?.[1])}</td>
+          <td>{jugador.statics?.[currentYear]?.[currentMonth]?.Ganadas || 0}</td>
+          <td>{jugador.statics?.[currentYear]?.[currentMonth]?.Perdidas || 0}</td>
+          <td>{calculateAverage(jugador.statics?.[currentYear]?.[currentMonth])}</td>
         </tr>
       ))}
     </>
