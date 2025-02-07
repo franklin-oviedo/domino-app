@@ -19,6 +19,8 @@ export const ScorePoints: React.FC = () => {
   const [puntosInput, setPuntosInput] = useState(0);
   const [equipo, setEquipo] = useState<number>(1);
   const [winner, setWinner] = useState<string | null>(null);
+  const [firstTeamNames, setFirstTeamNames] = useState<string[]>([]);
+  const [secondTeamNames, setSecondTeamNames] = useState<string[]>([]);
 
   useEffect(() => {
     if (!partidaId || !leagueId) return;
@@ -29,6 +31,8 @@ export const ScorePoints: React.FC = () => {
       if (data) {
         setPuntosFirstTeam(data.teams.FirstTeam?.[2] || {});
         setPuntosSecondTeam(data.teams.SecondTeam?.[2] || {});
+        setFirstTeamNames(data.teams.FirstTeam.map((player: any) => player.name));
+        setSecondTeamNames(data.teams.SecondTeam.map((player: any) => player.name));
       }
     });
 
@@ -50,6 +54,7 @@ export const ScorePoints: React.FC = () => {
     if (!partidaId || !leagueId) return;
 
     const partidaRef = firebase.database().ref(`ligas/${leagueId}/partidas/${partidaId}`);
+
     const puntosKey = Date.now().toString();
 
     const teamKey = equipo === 1 ? "FirstTeam" : "SecondTeam";
@@ -69,9 +74,19 @@ export const ScorePoints: React.FC = () => {
 
     // Verificar si el total de puntos ha superado el umbral para finalizar la partida
     if (totalPoints >= 200) {
-      // Si el equipo tiene más puntos que el otro, se define al ganador y perdedor
-      const idTeamWinner = equipo === 1 ? "FirstTeam" : "SecondTeam";
-      const idTeamLooser = equipo === 1 ? "SecondTeam" : "FirstTeam";
+      // Calcular el total de puntos de ambos equipos
+      const totalFirstTeam = calcularTotal({
+        ...puntosFirstTeam,
+        ...(equipo === 1 ? { [puntosKey]: points } : {}),
+      });
+      const totalSecondTeam = calcularTotal({
+        ...puntosSecondTeam,
+        ...(equipo === 2 ? { [puntosKey]: points } : {}),
+      });
+
+      // Determinar el equipo ganador y perdedor
+      const idTeamWinner = totalFirstTeam > totalSecondTeam ? "FirstTeam" : "SecondTeam";
+      const idTeamLooser = totalFirstTeam > totalSecondTeam ? "SecondTeam" : "FirstTeam";
 
       // Actualizar el estado de la partida a finalizada
       await partidaRef.update({
@@ -80,23 +95,52 @@ export const ScorePoints: React.FC = () => {
         idTeamLooser: idTeamLooser,
       });
 
-      setWinner(equipo === 1 ? "Equipo 1" : "Equipo 2");
+      setWinner(idTeamWinner);
 
       // Actualizar jugadores al finalizar la partida
       const jugadoresRef = firebase.database().ref(`ligas/${leagueId}/jugadores`);
       const jugadores = await jugadoresRef.once("value");
       const jugadoresData = jugadores.val();
 
+      const partidaTeams = await partidaRef.once("value");
+      const teams = partidaTeams.val();
+
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth();
+
       const updateJugadorStats = async (jugadorId: string, ganador: boolean) => {
         const jugadorRef = firebase.database().ref(`ligas/${leagueId}/jugadores/${jugadorId}`);
         const jugadorData = jugadoresData[jugadorId];
 
+        // Create an array with 12 elements, initializing each month with null
+        const statics = jugadorData.statics || {
+          [currentYear]: Array(12).fill(null)
+        };
+
+        // Ensure the current year is initialized
+        if (!statics[currentYear]) {
+          statics[currentYear] = Array(12).fill(null);
+        }
+
+        // Initialize the current month with an object containing "Ganadas" and "Perdidas" set to 0 if not already initialized
+        if (!statics[currentYear][currentMonth - 1]) {
+          statics[currentYear][currentMonth - 1] = {
+            Ganadas: 0,
+            Perdidas: 0
+          };
+        }
+
+        // Update the current month's statistics
+        if (ganador) {
+          statics[currentYear][currentMonth - 1].Ganadas += 1;
+        } else {
+          statics[currentYear][currentMonth - 1].Perdidas += 1;
+        }
+
         // Actualizar estadísticas de jugadores
         await jugadorRef.update({
           isPlaying: false,
-          totalPartidas: jugadorData.totalPartidas + 1,
-          partidasGanadas: ganador ? jugadorData.partidasGanadas + 1 : jugadorData.partidasGanadas,
-          partidasPerdidas: ganador ? jugadorData.partidasPerdidas : jugadorData.partidasPerdidas + 1,
+          statics: statics
         });
       };
 
@@ -104,7 +148,7 @@ export const ScorePoints: React.FC = () => {
       for (let jugadorId in jugadoresData) {
         const jugador = jugadoresData[jugadorId];
         if (jugador.isPlaying) {
-          const esGanador = (equipo === 1 && idTeamWinner === "FirstTeam") || (equipo === 2 && idTeamWinner === "SecondTeam");
+          const esGanador = teams.teams.FirstTeam.some((player: any) => player.id === jugadorId) ? idTeamWinner === "FirstTeam" : idTeamWinner === "SecondTeam";
           await updateJugadorStats(jugadorId, esGanador);
         }
       }
@@ -120,8 +164,7 @@ export const ScorePoints: React.FC = () => {
         <Col>
           <Card className="mb-3">
             <Card.Body>
-              <Card.Title>Equipo 1</Card.Title>
-              {/* Aquí puedes agregar los nombres de los jugadores dinámicamente */}
+              <Card.Title>{firstTeamNames.join(" & ")}</Card.Title>
               <Card.Text>Total: {calcularTotal(puntosFirstTeam)}</Card.Text>
               <Button
                 variant="primary"
@@ -146,7 +189,7 @@ export const ScorePoints: React.FC = () => {
         <Col>
           <Card className="mb-3">
             <Card.Body>
-              <Card.Title>Equipo 2</Card.Title>
+              <Card.Title>{secondTeamNames.join(" & ")}</Card.Title>
               <Card.Text>Total: {calcularTotal(puntosSecondTeam)}</Card.Text>
               <Button
                 variant="primary"
@@ -199,7 +242,7 @@ export const ScorePoints: React.FC = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal show={winner !== null} onHide={() => setWinner(null)}>
+      <Modal show={winner !== null} onHide={() => setWinner(winner)}>
         <Modal.Header closeButton>
           <Modal.Title>¡Fin de la Partida!</Modal.Title>
         </Modal.Header>

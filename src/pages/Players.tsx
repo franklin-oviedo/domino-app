@@ -1,4 +1,3 @@
-// src/components/Jugadores.js
 import React, { useState, useEffect } from "react";
 import { database } from "../firebase";
 import { ref, push, onValue, remove, update } from "firebase/database";
@@ -27,16 +26,27 @@ export const Players = () => {
   }, [leagueId]);
 
   const handleAgregarJugador = () => {
-    if(!nameValidations()) return;
+    if (!nameValidations()) return;
 
     const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // getMonth() returns 0-11, so add 1 to get 1-12
+
+    // Create an array with 12 elements, initializing each month with null
+    const statics = {
+      [currentYear]: Array(12).fill(null)
+    };
+
+    // Initialize the current month with an object containing "Ganadas" and "Perdidas" set to 0
+    statics[currentYear][currentMonth - 1] = {
+      Ganadas: 0,
+      Perdidas: 0
+    };
     push(jugadoresRef, {
       name: jugadorName,
-      partidasGanadas: 0,
-      partidasPerdidas: 0,
       average: 0,
-      totalPartidas: 0, // Add total partidas field
-      isPlaying: false
+      isPlaying: false,
+      statics:  statics
     });
     setJugadorName("");
   };
@@ -60,9 +70,9 @@ export const Players = () => {
     setNuevoNombre(jugador.name);
   };
 
-  const handleGuardarCambios = (jugadorId:string) => {
-     if(!nameValidations()) return;
-    
+  const handleGuardarCambios = (jugadorId: string) => {
+    if (!nameValidations()) return;
+
     const jugadorRef = ref(database, `ligas/${leagueId}/jugadores/${jugadorId}`);
     update(jugadorRef, { name: nuevoNombre })
       .then(() => {
@@ -74,31 +84,60 @@ export const Players = () => {
         console.error("Error al actualizar el nombre del jugador:", error);
       });
   };
-   
+
   const nameValidations = () => {
 
     let format = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
     let isValid = true;
     if (jugadorName.trim() === '') {
       alert("El nuevo nombre no puede estar vacío.");
-      isValid  = false;
+      isValid = false;
     }
 
-   else if (jugadorName.length > 1 && jugadorName.length <= 3) {
+    else if (jugadorName.length > 1 && jugadorName.length <= 3) {
       alert("El nuevo nombre debe tener mas de 3 caracteres.");
-      isValid  = false;
+      isValid = false;
     }
 
-    else if(format.test(jugadorName)) {
+    else if (format.test(jugadorName)) {
       alert("Los caracteres especiales no son permitidos.");
-      isValid  = false;
+      isValid = false;
     }
 
-     return isValid;
+    return isValid;
   }
 
   const handleVerEstadisticas = (jugador: any) => {
-    setSelectedJugador(jugador);
+    const statics = jugador.statics;
+    let totalPartidas = 0;
+    let partidasGanadas = 0;
+    let partidasPerdidas = 0;
+    let totalMeses = 0;
+    let averagePorMes = 0;
+    let averagePorAno = 0;
+
+    for (const year in statics) {
+      for (const month of statics[year]) {
+        if (month) {
+          partidasGanadas += month.Ganadas;
+          partidasPerdidas += month.Perdidas;
+          totalMeses++;
+        }
+      }
+    }
+
+    totalPartidas = partidasGanadas + partidasPerdidas;
+    averagePorMes = totalPartidas > 0 ? (partidasGanadas / totalPartidas) : 0;
+    averagePorAno = totalPartidas > 0 ? (partidasGanadas / totalPartidas) : 0;
+
+    setSelectedJugador({
+      ...jugador,
+      totalPartidas,
+      partidasGanadas,
+      partidasPerdidas,
+      averagePorMes: averagePorMes.toFixed(3),
+      averagePorAno: averagePorAno.toFixed(3),
+    });
     setShowStatsModal(true);
   };
 
@@ -107,20 +146,28 @@ export const Players = () => {
     setSelectedJugador(null);
   };
 
+  const getCurrentMonthName = () => {
+    return new Date().toLocaleString('es-ES', { month: 'long' });
+  };
+
+  const getCurrentYear = () => {
+    return new Date().getFullYear();
+  };
+
   return (
     <div>
       <div className="input-group mb-3">
-        <input 
-          type="text" 
-          value={jugadorName} 
-          onChange={(e) => setJugadorName(e.target.value)} 
-          placeholder="Agregar jugador nuevo - Nombre del Jugador" 
-          className="form-control" 
-          />
+        <input
+          type="text"
+          value={jugadorName}
+          onChange={(e) => setJugadorName(e.target.value)}
+          placeholder="Agregar jugador nuevo - Nombre del Jugador"
+          className="form-control"
+        />
         <button title='Agregar jugador nuevo' onClick={handleAgregarJugador} className="btn btn-primary"><i className="bi bi-person-plus-fill fs-4"></i></button>
       </div>
       <h2>Jugadores en la Liga</h2>
-      
+
       <div className="row">
         {jugadores.map((jugador) => (
           <div className="col-12 col-md-6 col-lg-4" key={jugador.id}>
@@ -135,12 +182,12 @@ export const Players = () => {
                       className="form-control mb-2"
                       placeholder='text'
                     />
-                    <button 
+                    <button
                       title='Guardar cambios'
-                      onClick={() => handleGuardarCambios(jugador.id)} 
+                      onClick={() => handleGuardarCambios(jugador.id)}
                       className="btn btn-success"
                     >
-                     <i className="bi bi-save2 fs-5"></i>
+                      <i className="bi bi-save2 fs-5"></i>
                     </button>
                   </>
                 ) : (
@@ -168,14 +215,14 @@ export const Players = () => {
           <Modal.Title>Estadísticas de {selectedJugador?.name}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <h5>Estadísticas del Mes</h5>
+          <h5>Estadísticas de {getCurrentMonthName()}</h5>
           <table className="table">
             <thead>
               <tr>
                 <th>Partidas Totales</th> {/* Moved Total Games to the top */}
                 <th>Partidas Ganadas</th>
                 <th>Partidas Perdidas</th>
-                <th>Average</th>
+                <th>Average por Mes</th>
               </tr>
             </thead>
             <tbody>
@@ -184,19 +231,19 @@ export const Players = () => {
                 {/* Display Total Games */}
                 <td>{selectedJugador?.partidasGanadas}</td>
                 <td>{selectedJugador?.partidasPerdidas}</td>
-                <td>{selectedJugador?.average}</td>
+                <td>{selectedJugador?.averagePorMes}</td>
               </tr>
             </tbody>
           </table>
 
-          <h5>Estadísticas Anuales</h5>
+          <h5>Estadísticas del Año {getCurrentYear()}</h5>
           <table className="table">
             <thead>
               <tr>
                 <th>Partidas Totales</th> {/* Moved Total Games to the top */}
                 <th>Partidas Ganadas</th>
                 <th>Partidas Perdidas</th>
-                <th>Average</th>
+                <th>Average por Año</th>
               </tr>
             </thead>
             <tbody>
@@ -205,7 +252,7 @@ export const Players = () => {
                 {/* Display Total Games */}
                 <td>{selectedJugador?.partidasGanadas}</td>
                 <td>{selectedJugador?.partidasPerdidas}</td>
-                <td>{selectedJugador?.average}</td>
+                <td>{selectedJugador?.averagePorAno}</td>
               </tr>
             </tbody>
           </table>

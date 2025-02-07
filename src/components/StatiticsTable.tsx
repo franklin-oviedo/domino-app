@@ -1,11 +1,16 @@
 import { Table } from "react-bootstrap";
 import { calculateAverage } from "../helpers/statiticsHelper";
+
 type StatiticsTableProps = {
   categorizedPlayers: any;
 };
+
 export const StatiticsTable: React.FC<StatiticsTableProps> = ({
   categorizedPlayers,
 }) => {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth(); // Los meses en JavaScript son 0-indexados y esto los convierte a 1-indexados
+
   const renderCategory = (categoryName: string, players: any[]) => (
     <>
       <tr className={`bg-light-blue text-white`}>
@@ -16,9 +21,9 @@ export const StatiticsTable: React.FC<StatiticsTableProps> = ({
       {players.map((jugador) => (
         <tr key={jugador.id}>
           <td>{jugador.name}</td>
-          <td>{jugador.mensual?.partidasGanadas || 0}</td>
-          <td>{jugador.mensual?.partidasPerdidas || 0}</td>
-          <td>{calculateAverage(jugador.mensual)}</td>
+          <td>{jugador.statics?.[currentYear]?.[currentMonth]?.Ganadas || 0}</td>
+          <td>{jugador.statics?.[currentYear]?.[currentMonth]?.Perdidas || 0}</td>
+          <td>{calculateAverage(jugador.statics?.[currentYear]?.[currentMonth])}</td>
         </tr>
       ))}
     </>
