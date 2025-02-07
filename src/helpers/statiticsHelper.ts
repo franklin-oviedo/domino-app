@@ -1,6 +1,6 @@
 export const calculateAverage = (stats: any) => {
-  const ganadas = stats?.partidasGanadas || 0;
-  const perdidas = stats?.partidasPerdidas || 0;
+  const ganadas = stats?.Ganadas || 0;
+  const perdidas = stats?.Perdidas || 0;
   const totalPartidas = ganadas + perdidas;
   if (totalPartidas > 0) {
     return (ganadas / totalPartidas).toFixed(3);
@@ -11,7 +11,7 @@ export const calculateAverage = (stats: any) => {
 
 export const categorizePlayers = (players: any[]) => {
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth(); // Los meses en JavaScript son 0-indexados
+  const currentMonth = new Date().getMonth(); // Los meses en JavaScript son 0-indexados y esto los convierte a 1-indexados
 
   // Ordenar jugadores por average del mes actual de mayor a menor
   const sortedPlayers = players.sort((a, b) => {
