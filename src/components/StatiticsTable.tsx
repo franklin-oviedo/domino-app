@@ -1,8 +1,10 @@
 import { Table } from "react-bootstrap";
 import { calculateAverage } from "../helpers/statiticsHelper";
+
 type StatiticsTableProps = {
   categorizedPlayers: any;
 };
+
 export const StatiticsTable: React.FC<StatiticsTableProps> = ({
   categorizedPlayers,
 }) => {
@@ -16,9 +18,9 @@ export const StatiticsTable: React.FC<StatiticsTableProps> = ({
       {players.map((jugador) => (
         <tr key={jugador.id}>
           <td>{jugador.name}</td>
-          <td>{jugador.mensual?.partidasGanadas || 0}</td>
-          <td>{jugador.mensual?.partidasPerdidas || 0}</td>
-          <td>{calculateAverage(jugador.mensual)}</td>
+          <td>{jugador.statics?.["2025"]?.[1]?.Ganadas || 0}</td>
+          <td>{jugador.statics?.["2025"]?.[1]?.Perdidas || 0}</td>
+          <td>{calculateAverage(jugador.statics?.["2025"]?.[1])}</td>
         </tr>
       ))}
     </>
