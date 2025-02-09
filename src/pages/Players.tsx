@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { database } from "../firebase";
 import { ref, push, onValue, remove, update } from "firebase/database";
 import { useParams, Link } from "react-router-dom";
-import { Modal } from "react-bootstrap"; // Ensure you have react-bootstrap installed
-import { ROUTE_PATHS } from "../helpers/routes";
+import { Modal } from "react-bootstrap";
 
 export const Players = () => {
   const { leagueId } = useParams();
@@ -30,23 +29,20 @@ export const Players = () => {
 
     const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth(); // getMonth() returns 0-11, so add 1 to get 1-12
+    const currentMonth = parseInt(new Date().toLocaleString('es-ES', { month: 'numeric' }));
 
-    // Create an array with 12 elements, initializing each month with null
     const statics = {
       [currentYear]: Array(12).fill(null)
     };
 
-    // Initialize the current month with an object containing "Ganadas" and "Perdidas" set to 0
-    statics[currentYear][currentMonth - 1] = {
+    statics[currentYear][currentMonth] = {
       Ganadas: 0,
       Perdidas: 0
     };
     push(jugadoresRef, {
       name: jugadorName,
-      average: 0,
       isPlaying: false,
-      statics:  statics
+      statics: statics
     });
     setJugadorName("");
   };
@@ -86,42 +82,35 @@ export const Players = () => {
   };
 
   const nameValidations = () => {
-
-    let format = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+    let format = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]+/;
     let isValid = true;
     if (jugadorName.trim() === '') {
       alert("El nuevo nombre no puede estar vacío.");
       isValid = false;
-    }
-
-    else if (jugadorName.length > 1 && jugadorName.length <= 3) {
+    } else if (jugadorName.length > 1 && jugadorName.length <= 3) {
       alert("El nuevo nombre debe tener mas de 3 caracteres.");
       isValid = false;
-    }
-
-    else if (format.test(jugadorName)) {
+    } else if (format.test(jugadorName)) {
       alert("Los caracteres especiales no son permitidos.");
       isValid = false;
     }
-
     return isValid;
-  }
+  };
 
   const handleVerEstadisticas = (jugador: any) => {
     const statics = jugador.statics;
     let totalPartidas = 0;
     let partidasGanadas = 0;
     let partidasPerdidas = 0;
-    let totalMeses = 0;
     let averagePorMes = 0;
     let averagePorAno = 0;
 
     for (const year in statics) {
-      for (const month of statics[year]) {
-        if (month) {
-          partidasGanadas += month.Ganadas;
-          partidasPerdidas += month.Perdidas;
-          totalMeses++;
+      for (const month in statics[year]) {
+        const monthData = statics[year][month];
+        if (monthData) {
+          partidasGanadas += monthData.Ganadas;
+          partidasPerdidas += monthData.Perdidas;
         }
       }
     }
@@ -208,8 +197,6 @@ export const Players = () => {
 
       <Link to={`/start-game/${leagueId}`} className="btn btn-success mt-4"><i className="bi bi-play fs-4"></i></Link>
       <Link to="/" className="btn btn-info mt-4"><i className="bi bi-house fs-4"></i></Link>
-
-      {/* Modal for player statistics */}
       <Modal show={showStatsModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Estadísticas de {selectedJugador?.name}</Modal.Title>
@@ -219,7 +206,7 @@ export const Players = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>Partidas Totales</th> {/* Moved Total Games to the top */}
+                <th>Partidas Totales</th>
                 <th>Partidas Ganadas</th>
                 <th>Partidas Perdidas</th>
                 <th>Average por Mes</th>
@@ -227,8 +214,7 @@ export const Players = () => {
             </thead>
             <tbody>
               <tr>
-                <td>{selectedJugador?.totalPartidas}</td>{" "}
-                {/* Display Total Games */}
+                <td>{selectedJugador?.totalPartidas}</td>
                 <td>{selectedJugador?.partidasGanadas}</td>
                 <td>{selectedJugador?.partidasPerdidas}</td>
                 <td>{selectedJugador?.averagePorMes}</td>
@@ -240,7 +226,7 @@ export const Players = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>Partidas Totales</th> {/* Moved Total Games to the top */}
+                <th>Partidas Totales</th>
                 <th>Partidas Ganadas</th>
                 <th>Partidas Perdidas</th>
                 <th>Average por Año</th>
@@ -248,8 +234,7 @@ export const Players = () => {
             </thead>
             <tbody>
               <tr>
-                <td>{selectedJugador?.totalPartidas}</td>{" "}
-                {/* Display Total Games */}
+                <td>{selectedJugador?.totalPartidas}</td>
                 <td>{selectedJugador?.partidasGanadas}</td>
                 <td>{selectedJugador?.partidasPerdidas}</td>
                 <td>{selectedJugador?.averagePorAno}</td>

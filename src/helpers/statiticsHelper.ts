@@ -5,19 +5,18 @@ export const calculateAverage = (stats: any) => {
   if (totalPartidas > 0) {
     return (ganadas / totalPartidas).toFixed(3);
   } else {
-    return "-";
+    return "0.000"; 
   }
 };
 
 export const categorizePlayers = (players: any[]) => {
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth(); // Los meses en JavaScript son 0-indexados y esto los convierte a 1-indexados
+  const currentMonth = parseInt(new Date().toLocaleString('es-ES', { month: 'numeric' }));
 
-  // Ordenar jugadores por average del mes actual de mayor a menor
   const sortedPlayers = players.sort((a, b) => {
-    const avgA = parseFloat(calculateAverage(a.statics?.[currentYear]?.[currentMonth]));
-    const avgB = parseFloat(calculateAverage(b.statics?.[currentYear]?.[currentMonth]));
-    return avgB - avgA;
+    const avgA = parseFloat(calculateAverage(a.statics?.[currentYear]?.[currentMonth])) || 0;
+    const avgB = parseFloat(calculateAverage(b.statics?.[currentYear]?.[currentMonth])) || 0;
+    return avgB - avgA; // Ordena de mayor a menor
   });
 
   // Categorizar jugadores en grupos de 3

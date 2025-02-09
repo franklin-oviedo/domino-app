@@ -26,19 +26,14 @@ export const Statistics = () => {
 
   const categorizedPlayers = categorizePlayers(jugadores);
 
-  const getMonthName = (monthIndex: number) => {
-    const monthNames = [
-      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
-    return monthNames[monthIndex];
+  const getCurrentMonthName = () => {
+    const monthName =  new Date().toLocaleString('es-ES', { month: 'long' });
+    return monthName.charAt(0).toUpperCase() + monthName.slice(1);
   };
-
-  const currentMonthName = getMonthName(new Date().getMonth());
 
   return (
     <Container className="mt-5">
-      <h2 className="text-center mb-4">Estadísticas de la Liga - {currentMonthName}</h2>
+      <h2 className="text-center mb-4">Estadísticas de la Liga - {getCurrentMonthName()}</h2>
       <Row>
         <Col>
           <StatiticsTable categorizedPlayers={categorizedPlayers} />

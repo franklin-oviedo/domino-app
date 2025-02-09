@@ -16,7 +16,7 @@ export const ScorePoints: React.FC = () => {
   const [puntosFirstTeam, setPuntosFirstTeam] = useState<Record<string, number>>({});
   const [puntosSecondTeam, setPuntosSecondTeam] = useState<Record<string, number>>({});
   const [showModal, setShowModal] = useState(false);
-  const [puntosInput, setPuntosInput] = useState(0);
+  const [puntosInput, setPuntosInput] = useState<number>();
   const [equipo, setEquipo] = useState<number>(1);
   const [winner, setWinner] = useState<string | null>(null);
   const [firstTeamNames, setFirstTeamNames] = useState<string[]>([]);
@@ -106,7 +106,7 @@ export const ScorePoints: React.FC = () => {
       const teams = partidaTeams.val();
 
       const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth();
+      const currentMonth = parseInt(new Date().toLocaleString('es-ES', { month: 'numeric' }));
 
       const updateJugadorStats = async (jugadorId: string, ganador: boolean) => {
         const jugadorRef = firebase.database().ref(`ligas/${leagueId}/jugadores/${jugadorId}`);
@@ -123,8 +123,8 @@ export const ScorePoints: React.FC = () => {
         }
 
         // Initialize the current month with an object containing "Ganadas" and "Perdidas" set to 0 if not already initialized
-        if (!statics[currentYear][currentMonth - 1]) {
-          statics[currentYear][currentMonth - 1] = {
+        if (!statics[currentYear][currentMonth]) {
+          statics[currentYear][currentMonth] = {
             Ganadas: 0,
             Perdidas: 0
           };
@@ -132,9 +132,9 @@ export const ScorePoints: React.FC = () => {
 
         // Update the current month's statistics
         if (ganador) {
-          statics[currentYear][currentMonth - 1].Ganadas += 1;
+          statics[currentYear][currentMonth].Ganadas += 1;
         } else {
-          statics[currentYear][currentMonth - 1].Perdidas += 1;
+          statics[currentYear][currentMonth].Perdidas += 1;
         }
 
         // Actualizar estadísticas de jugadores
@@ -236,7 +236,7 @@ export const ScorePoints: React.FC = () => {
           <Button variant="secondary" onClick={handleCloseModal}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={() => savePoints(puntosInput)}>
+          <Button variant="primary" onClick={() => savePoints(puntosInput || 0)}>
             Agregar
           </Button>
         </Modal.Footer>
