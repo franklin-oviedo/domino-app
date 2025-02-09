@@ -16,7 +16,7 @@ export const ScorePoints: React.FC = () => {
   const [puntosFirstTeam, setPuntosFirstTeam] = useState<Record<string, number>>({});
   const [puntosSecondTeam, setPuntosSecondTeam] = useState<Record<string, number>>({});
   const [showModal, setShowModal] = useState(false);
-  const [puntosInput, setPuntosInput] = useState(0);
+  const [puntosInput, setPuntosInput] = useState<number>();
   const [equipo, setEquipo] = useState<number>(1);
   const [winner, setWinner] = useState<string | null>(null);
   const [firstTeamNames, setFirstTeamNames] = useState<string[]>([]);
@@ -236,7 +236,7 @@ export const ScorePoints: React.FC = () => {
           <Button variant="secondary" onClick={handleCloseModal}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={() => savePoints(puntosInput)}>
+          <Button variant="primary" onClick={() => savePoints(puntosInput || 0)}>
             Agregar
           </Button>
         </Modal.Footer>
