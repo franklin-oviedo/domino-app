@@ -30,15 +30,13 @@ export const Players = () => {
 
     const jugadoresRef = ref(database, `ligas/${leagueId}/jugadores`);
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth(); // getMonth() returns 0-11, so add 1 to get 1-12
+    const currentMonth = new Date().toLocaleString('es-ES', { month: 'numeric' }); 
 
-    // Create an array with 12 elements, initializing each month with null
     const statics = {
       [currentYear]: Array(12).fill(null)
     };
 
-    // Initialize the current month with an object containing "Ganadas" and "Perdidas" set to 0
-    statics[currentYear][currentMonth - 1] = {
+    statics[currentYear][+currentMonth] = {
       Ganadas: 0,
       Perdidas: 0
     };
