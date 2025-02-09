@@ -9,7 +9,7 @@ export const StatiticsTable: React.FC<StatiticsTableProps> = ({
   categorizedPlayers,
 }) => {
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().toLocaleString('es-ES', { month: 'numeric' });
+  const currentMonth = parseInt(new Date().toLocaleString('es-ES', { month: 'numeric' }));
   const renderCategory = (categoryName: string, players: any[]) => (
     <>
       <tr className={`bg-light-blue text-white`}>

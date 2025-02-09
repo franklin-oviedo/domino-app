@@ -11,7 +11,7 @@ export const calculateAverage = (stats: any) => {
 
 export const categorizePlayers = (players: any[]) => {
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().toLocaleString('es-ES', { month: 'numeric' });
+  const currentMonth = parseInt(new Date().toLocaleString('es-ES', { month: 'numeric' }));
 
   const sortedPlayers = players.sort((a, b) => {
     const avgA = parseFloat(calculateAverage(a.statics?.[currentYear]?.[currentMonth])) || 0;

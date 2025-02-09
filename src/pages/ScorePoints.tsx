@@ -106,7 +106,7 @@ export const ScorePoints: React.FC = () => {
       const teams = partidaTeams.val();
 
       const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().toLocaleString('es-ES', { month: 'numeric' });
+      const currentMonth = parseInt(new Date().toLocaleString('es-ES', { month: 'numeric' }));
 
       const updateJugadorStats = async (jugadorId: string, ganador: boolean) => {
         const jugadorRef = firebase.database().ref(`ligas/${leagueId}/jugadores/${jugadorId}`);
