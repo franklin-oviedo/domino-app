@@ -41,7 +41,6 @@ export const Players = () => {
     };
     push(jugadoresRef, {
       name: jugadorName,
-      average: 0,
       isPlaying: false,
       statics: statics
     });
